@@ -33,5 +33,16 @@ export const createMilestoneSchema = z.object({
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type CreateCoupleInput = z.infer<typeof createCoupleSchema>;
+export const updateCoupleSchema = z.object({
+  displayName: z.string().min(2).max(200).optional(),
+  bio: z.string().max(500).optional(),
+  anniversary: z.string().optional(),
+  weddingDate: z.string().optional(),
+  theme: z.string().max(30).optional(),
+  coverPhoto: z.string().optional(),
+  isPublic: z.boolean().optional(),
+});
+
 export type CreatePostInput = z.infer<typeof createPostSchema>;
 export type CreateMilestoneInput = z.infer<typeof createMilestoneSchema>;
+export type UpdateCoupleInput = z.infer<typeof updateCoupleSchema>;

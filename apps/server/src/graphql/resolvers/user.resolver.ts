@@ -1,5 +1,6 @@
 import { GraphQLScalarType, Kind } from 'graphql';
 import * as authService from '../../services/auth.service.js';
+import { db } from '../../config/database.js';
 import type { GQLContext } from '../context.js';
 
 export const userResolvers = {
@@ -38,5 +39,17 @@ export const userResolvers = {
 
   User: {
     createdAt: (parent: { created_at: Date }) => parent.created_at,
+    couples: async (parent: { id: string }) => {
+      return db
+        .selectFrom('couples')
+        .selectAll()
+        .where((eb) =>
+          eb.or([
+            eb('partner1_id', '=', parent.id),
+            eb('partner2_id', '=', parent.id),
+          ]),
+        )
+        .execute();
+    },
   },
 };
