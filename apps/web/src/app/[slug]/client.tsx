@@ -4,6 +4,8 @@ import React, { useEffect } from 'react';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { INCREMENT_VIEW_COUNT } from '../../graphql/mutations/couple.mutations';
 import { GET_MILESTONES } from '../../graphql/queries/milestone.queries';
+import { GET_POSTS } from '../../graphql/queries/post.queries';
+import { Gallery } from '../../components/couple/gallery';
 import { CoupleHero } from '../../components/couple/couple-hero';
 import { CoupleStats } from '../../components/couple/couple-stats';
 import { ShareButton } from '../../components/couple/share-button';
@@ -36,6 +38,16 @@ interface CoupleData {
 
 export function CouplePageClient({ couple }: { couple: CoupleData }) {
   const [incrementView] = useMutation(INCREMENT_VIEW_COUNT);
+  const { data: postsData } = useQuery<{
+    posts: {
+      id: string;
+      caption: string | null;
+      media: { id: string; url: string; type: string }[];
+    }[];
+  }>(GET_POSTS, {
+    variables: { coupleId: couple.id, limit: 20 },
+  });
+
   const { data: milestonesData } = useQuery<{
     milestones: {
       id: string;
@@ -105,17 +117,16 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
         </Card>
       )}
 
+      {/* Gallery */}
+      {(postsData?.posts?.length ?? 0) > 0 && (
+        <Card>
+          <h2 className="mb-6 text-center text-xl font-semibold text-gray-900">Our Gallery</h2>
+          <Gallery posts={postsData!.posts} />
+        </Card>
+      )}
+
       {/* Placeholder sections for future phases */}
       <div className="grid gap-6 sm:grid-cols-2">
-        <Card>
-          <div className="py-8 text-center text-gray-400">
-            <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
-            </svg>
-            <p className="mt-2 font-medium">Gallery</p>
-            <p className="text-sm">Coming soon</p>
-          </div>
-        </Card>
         <Card>
           <div className="py-8 text-center text-gray-400">
             <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
