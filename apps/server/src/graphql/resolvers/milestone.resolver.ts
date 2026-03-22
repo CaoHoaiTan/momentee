@@ -6,6 +6,15 @@ import * as milestoneService from '../../services/milestone.service.js';
 import { requireAuth } from '../../utils/errors.js';
 import type { GQLContext } from '../context.js';
 
+// GraphQL sends null for absent optional fields; Zod .optional() only accepts undefined
+function stripNulls(obj: Record<string, unknown>): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    result[k] = v === null ? undefined : v;
+  }
+  return result;
+}
+
 export const milestoneResolvers = {
   Query: {
     milestones: async (
@@ -32,7 +41,7 @@ export const milestoneResolvers = {
       context: GQLContext,
     ) => {
       requireAuth(context);
-      const validated = createMilestoneSchema.parse(args.input);
+      const validated = createMilestoneSchema.parse(stripNulls(args.input));
       return milestoneService.create(
         args.coupleId,
         context.user.userId,
@@ -46,7 +55,7 @@ export const milestoneResolvers = {
       context: GQLContext,
     ) => {
       requireAuth(context);
-      const validated = updateMilestoneSchema.parse(args.input);
+      const validated = updateMilestoneSchema.parse(stripNulls(args.input));
       return milestoneService.update(
         args.id,
         context.user.userId,

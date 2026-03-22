@@ -10,6 +10,7 @@ import { typeDefs, resolvers } from './graphql/schema.js';
 import { createContext, type GQLContext } from './graphql/context.js';
 import healthRouter from './routes/health.route.js';
 import webhookRouter from './routes/webhook.route.js';
+import uploadRouter from './routes/upload.route.js';
 import { env } from './config/env.js';
 
 async function main() {
@@ -34,15 +35,17 @@ async function main() {
   // Rate limiting for GraphQL endpoint
   const graphqlLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100,
+    max: env.NODE_ENV === 'production' ? 100 : 1000,
     standardHeaders: true,
     legacyHeaders: false,
     message: 'Too many requests, please try again later.',
   });
 
   // Routes
+  
   app.use(healthRouter);
   app.use(webhookRouter);
+  app.use(uploadRouter);
 
   // Apollo Server
   const server = new ApolloServer<GQLContext>({
