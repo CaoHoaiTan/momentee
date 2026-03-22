@@ -43,6 +43,14 @@ export const updateCoupleSchema = z.object({
   isPublic: z.boolean().optional(),
 });
 
+export const updateMilestoneSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  description: z.string().max(1000).optional(),
+  date: z.string().optional(),
+  icon: z.string().max(10).optional(),
+});
+
 export type CreatePostInput = z.infer<typeof createPostSchema>;
 export type CreateMilestoneInput = z.infer<typeof createMilestoneSchema>;
+export type UpdateMilestoneInput = z.infer<typeof updateMilestoneSchema>;
 export type UpdateCoupleInput = z.infer<typeof updateCoupleSchema>;
