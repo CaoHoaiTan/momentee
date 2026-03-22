@@ -46,24 +46,33 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasToken, setHasToken] = useState(false);
 
   const [loginMutation] = useMutation<LoginData>(LOGIN_MUTATION);
   const [registerMutation] = useMutation<RegisterData>(REGISTER_MUTATION);
 
-  const hasToken = typeof window !== 'undefined' && !!localStorage.getItem('momentee_access_token');
+  useEffect(() => {
+    const token = localStorage.getItem('momentee_access_token');
+    if (token) {
+      setHasToken(true);
+    } else {
+      setLoading(false);
+    }
+  }, []);
 
   const { data: meData, loading: meLoading } = useQuery<MeData>(ME_QUERY, {
     skip: !hasToken,
   });
 
   useEffect(() => {
+    if (!hasToken) return;
     if (meData?.me) {
       setUser(meData.me);
       setLoading(false);
     } else if (!meLoading) {
       setLoading(false);
     }
-  }, [meData, meLoading]);
+  }, [hasToken, meData, meLoading]);
 
   const login = useCallback(
     async (email: string, password: string) => {
