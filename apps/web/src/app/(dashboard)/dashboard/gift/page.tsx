@@ -1,0 +1,212 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useQuery, useMutation } from '@apollo/client/react';
+import { useAuth } from '../../../../hooks/useAuth';
+import { useCouple } from '../../../../hooks/useCouple';
+import { GET_GIFT_ACCOUNTS } from '../../../../graphql/queries/gift.queries';
+import { CREATE_GIFT_ACCOUNT, UPDATE_GIFT_ACCOUNT, DELETE_GIFT_ACCOUNT } from '../../../../graphql/mutations/gift.mutations';
+import { ConfirmModal } from '../../../../components/ui/confirm-modal';
+import { Button } from '../../../../components/ui/button';
+import { LoadingSpinner } from '../../../../components/ui/loading-spinner';
+
+interface GiftAccountData {
+  id: string;
+  coupleId: string;
+  bankName: string | null;
+  accountNumber: string | null;
+  accountHolder: string | null;
+  qrCode: string | null;
+  note: string | null;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export default function GiftPage() {
+  const router = useRouter();
+  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { couple, loading: coupleLoading } = useCouple();
+
+  const [formOpen, setFormOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  // Form state
+  const [bankName, setBankName] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [accountHolder, setAccountHolder] = useState('');
+  const [note, setNote] = useState('');
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) router.push('/login');
+  }, [authLoading, isAuthenticated, router]);
+
+  useEffect(() => {
+    if (!authLoading && !coupleLoading && isAuthenticated && !couple) router.push('/onboarding');
+  }, [authLoading, coupleLoading, isAuthenticated, couple, router]);
+
+  const { data, loading: accountsLoading } = useQuery<{ giftAccounts: GiftAccountData[] }>(GET_GIFT_ACCOUNTS, {
+    variables: { coupleId: couple?.id },
+    skip: !couple?.id,
+  });
+
+  const refetchConfig = { refetchQueries: [{ query: GET_GIFT_ACCOUNTS, variables: { coupleId: couple?.id } }] };
+  const [createGift, { loading: creating }] = useMutation(CREATE_GIFT_ACCOUNT, refetchConfig);
+  const [deleteGift, { loading: deleting }] = useMutation(DELETE_GIFT_ACCOUNT, refetchConfig);
+
+  if (authLoading || coupleLoading) {
+    return <div className="flex min-h-[50vh] items-center justify-center"><LoadingSpinner size="lg" /></div>;
+  }
+  if (!isAuthenticated || !couple) return null;
+
+  const accounts = data?.giftAccounts ?? [];
+
+  const handleCreate = async () => {
+    if (!bankName.trim() || !accountNumber.trim()) return;
+    await createGift({
+      variables: {
+        coupleId: couple.id,
+        input: {
+          bankName: bankName.trim(),
+          accountNumber: accountNumber.trim(),
+          accountHolder: accountHolder.trim() || null,
+          note: note.trim() || null,
+        },
+      },
+    });
+    setFormOpen(false);
+    setBankName('');
+    setAccountNumber('');
+    setAccountHolder('');
+    setNote('');
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    await deleteGift({ variables: { id: deleteId } });
+    setDeleteId(null);
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Gift Accounts</h1>
+          <p className="mt-1 text-gray-500">Bank accounts for receiving monetary gifts.</p>
+        </div>
+        <Button variant="primary" size="sm" onClick={() => setFormOpen(true)}>Add Account</Button>
+      </div>
+
+      {accountsLoading ? (
+        <div className="flex justify-center py-12"><LoadingSpinner size="lg" /></div>
+      ) : accounts.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl bg-white py-16 text-center shadow-sm ring-1 ring-gray-100">
+          <span className="text-5xl">🎁</span>
+          <h3 className="mt-4 text-lg font-semibold text-gray-900">No gift accounts yet</h3>
+          <p className="mt-1 text-sm text-gray-500">Add your bank accounts so friends can send gifts</p>
+          <Button variant="primary" size="sm" className="mt-4" onClick={() => setFormOpen(true)}>Add Account</Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {accounts.map((account) => (
+            <div key={account.id} className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-semibold text-gray-900">{account.bankName}</h3>
+                  <div className="mt-2 space-y-1 text-sm text-gray-600">
+                    <p>
+                      Account: <span className="font-mono font-medium">{account.accountNumber}</span>
+                      <button
+                        onClick={() => copyToClipboard(account.accountNumber ?? '')}
+                        className="ml-2 text-[var(--color-coral)] hover:underline"
+                      >
+                        Copy
+                      </button>
+                    </p>
+                    {account.accountHolder && <p>Holder: {account.accountHolder}</p>}
+                    {account.note && <p className="text-gray-400">{account.note}</p>}
+                  </div>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setDeleteId(account.id)} className="!text-red-500">
+                  Delete
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Create Form Modal */}
+      {formOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setFormOpen(false)} />
+          <div className="relative mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900">Add Gift Account</h3>
+            <div className="mt-4 space-y-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Bank Name</label>
+                <input
+                  type="text"
+                  value={bankName}
+                  onChange={(e) => setBankName(e.target.value)}
+                  placeholder="e.g. Vietcombank"
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2 text-sm outline-none transition-colors focus:border-[var(--color-coral)] focus:ring-1 focus:ring-[var(--color-coral)]"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Account Number</label>
+                <input
+                  type="text"
+                  value={accountNumber}
+                  onChange={(e) => setAccountNumber(e.target.value)}
+                  placeholder="e.g. 1234567890"
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2 text-sm outline-none transition-colors focus:border-[var(--color-coral)] focus:ring-1 focus:ring-[var(--color-coral)]"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Account Holder</label>
+                <input
+                  type="text"
+                  value={accountHolder}
+                  onChange={(e) => setAccountHolder(e.target.value)}
+                  placeholder="e.g. NGUYEN VAN A"
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2 text-sm outline-none transition-colors focus:border-[var(--color-coral)] focus:ring-1 focus:ring-[var(--color-coral)]"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Note (optional)</label>
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  rows={2}
+                  placeholder="e.g. For wedding gifts"
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2 text-sm outline-none transition-colors focus:border-[var(--color-coral)] focus:ring-1 focus:ring-[var(--color-coral)]"
+                />
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <Button variant="ghost" size="sm" onClick={() => setFormOpen(false)} disabled={creating}>Cancel</Button>
+                <Button variant="primary" size="sm" loading={creating} onClick={handleCreate} disabled={!bankName.trim() || !accountNumber.trim()}>
+                  Add Account
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <ConfirmModal
+        open={!!deleteId}
+        title="Delete Gift Account"
+        message="Are you sure you want to remove this gift account?"
+        confirmLabel="Delete"
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+      />
+    </div>
+  );
+}

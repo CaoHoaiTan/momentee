@@ -372,8 +372,8 @@ test.describe('Frontend — Public couple page', () => {
       page.getByRole('button', { name: 'Share' }),
     ).toBeVisible();
 
-    // Placeholder sections
-    await expect(page.getByText('Gallery')).toBeVisible();
+    // Wishes section
+    await expect(page.getByText('Wishes & Blessings')).toBeVisible();
   });
 
   test('shows 404 for invalid slug', async ({ page }) => {

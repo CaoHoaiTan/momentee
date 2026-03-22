@@ -50,7 +50,21 @@ export const updateMilestoneSchema = z.object({
   icon: z.string().max(10).optional(),
 });
 
+export const createWishSchema = z.object({
+  authorName: z.string().min(1).max(100),
+  message: z.string().min(1).max(2000),
+  emoji: z.string().max(10).optional(),
+  isAnonymous: z.boolean().optional(),
+});
+
+export const createCommentSchema = z.object({
+  content: z.string().min(1).max(2000),
+  guestName: z.string().min(1).max(100).optional(),
+});
+
 export type CreatePostInput = z.infer<typeof createPostSchema>;
 export type CreateMilestoneInput = z.infer<typeof createMilestoneSchema>;
 export type UpdateMilestoneInput = z.infer<typeof updateMilestoneSchema>;
 export type UpdateCoupleInput = z.infer<typeof updateCoupleSchema>;
+export type CreateWishInput = z.infer<typeof createWishSchema>;
+export type CreateCommentInput = z.infer<typeof createCommentSchema>;
