@@ -59,7 +59,7 @@ async function main() {
   app.use(
     '/graphql',
     graphqlLimiter,
-    express.json(),
+    express.json({ limit: '50mb' }),
     expressMiddleware(server, {
       context: async ({ req }) => createContext({ req: req as any }),
     }) as any,
