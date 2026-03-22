@@ -62,8 +62,8 @@ async function main() {
     }) as any,
   );
 
-  app.listen(env.PORT, () => {
-    console.log(`Server running at http://localhost:${env.PORT}/graphql (${env.NODE_ENV})`);
+  app.listen(env.PORT, '0.0.0.0', () => {
+    console.log(`Server running at http://0.0.0.0:${env.PORT}/graphql (${env.NODE_ENV})`);
   });
 }
 
