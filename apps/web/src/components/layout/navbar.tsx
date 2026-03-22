@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '../ui/button';
+import { NotificationBell } from './notification-bell';
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -39,6 +40,7 @@ export function Navbar() {
         <div className="hidden items-center gap-3 md:flex">
           {isAuthenticated ? (
             <div className="flex items-center gap-3">
+              <NotificationBell />
               <div className="flex items-center gap-2">
                 {user?.avatar ? (
                   <img

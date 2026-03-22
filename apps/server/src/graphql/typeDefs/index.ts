@@ -8,5 +8,9 @@ import { reactionTypeDefs } from './reaction.graphql.js';
 import { eventTypeDefs } from './event.graphql.js';
 import { quizTypeDefs } from './quiz.graphql.js';
 import { giftTypeDefs } from './gift.graphql.js';
+import { notificationTypeDefs } from './notification.graphql.js';
+import { billingTypeDefs } from './billing.graphql.js';
+import { exploreTypeDefs } from './explore.graphql.js';
+import { adminTypeDefs } from './admin.graphql.js';
 
-export const typeDefs = [userTypeDefs, authTypeDefs, coupleTypeDefs, milestoneTypeDefs, postTypeDefs, wishTypeDefs, reactionTypeDefs, eventTypeDefs, quizTypeDefs, giftTypeDefs];
+export const typeDefs = [userTypeDefs, authTypeDefs, coupleTypeDefs, milestoneTypeDefs, postTypeDefs, wishTypeDefs, reactionTypeDefs, eventTypeDefs, quizTypeDefs, giftTypeDefs, notificationTypeDefs, billingTypeDefs, exploreTypeDefs, adminTypeDefs];

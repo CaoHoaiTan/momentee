@@ -8,6 +8,10 @@ import { reactionResolvers } from './reaction.resolver.js';
 import { eventResolvers } from './event.resolver.js';
 import { quizResolvers } from './quiz.resolver.js';
 import { giftResolvers } from './gift.resolver.js';
+import { notificationResolvers } from './notification.resolver.js';
+import { billingResolvers } from './billing.resolver.js';
+import { exploreResolvers } from './explore.resolver.js';
+import { adminResolvers } from './admin.resolver.js';
 
 export const resolvers = {
   Query: {
@@ -20,6 +24,10 @@ export const resolvers = {
     ...eventResolvers.Query,
     ...quizResolvers.Query,
     ...giftResolvers.Query,
+    ...notificationResolvers.Query,
+    ...billingResolvers.Query,
+    ...exploreResolvers.Query,
+    ...adminResolvers.Query,
   },
   Mutation: {
     ...authResolvers.Mutation,
@@ -31,6 +39,9 @@ export const resolvers = {
     ...eventResolvers.Mutation,
     ...quizResolvers.Mutation,
     ...giftResolvers.Mutation,
+    ...notificationResolvers.Mutation,
+    ...billingResolvers.Mutation,
+    ...adminResolvers.Mutation,
   },
   DateTime: userResolvers.DateTime,
   Date: coupleResolvers.Date,
@@ -49,6 +60,10 @@ export const resolvers = {
   QuizQuestion: quizResolvers.QuizQuestion,
   QuizResponse: quizResolvers.QuizResponse,
   GiftAccount: giftResolvers.GiftAccount,
+  Notification: notificationResolvers.Notification,
+  Subscription: billingResolvers.Subscription,
+  SubscriptionStatus: billingResolvers.SubscriptionStatus,
+  AdminCouple: adminResolvers.AdminCouple,
   UserRole: {
     USER: 'user',
     ADMIN: 'admin',
