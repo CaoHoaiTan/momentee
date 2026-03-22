@@ -52,6 +52,7 @@ export default function LoginPage() {
       {error && <Toast message={error} type="error" onClose={() => setError(null)} />}
       <Card>
         <div className="mb-6 text-center">
+          <img src="/momentee_logo/momentee-favicon.svg" alt="" className="mx-auto mb-3 h-10 w-10" />
           <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
           <p className="mt-1 text-sm text-gray-500">Sign in to your Momentee account</p>
         </div>

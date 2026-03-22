@@ -1,0 +1,25 @@
+<svg width="320" height="60" viewBox="0 0 320 60" xmlns="http://www.w3.org/2000/svg">
+  <!-- Momentee Primary Logo: Icon + Wordmark -->
+  <defs>
+    <linearGradient id="brand-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF6B6B"/>
+      <stop offset="50%" stop-color="#FF8E53"/>
+      <stop offset="100%" stop-color="#FFC371"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon: Duo hearts -->
+  <g transform="translate(4, 8)">
+    <path d="M18 32 C9 24 0 17 0 10 C0 4 4 0 10 0 C14 0 17 3 18 6 C19 3 22 0 26 0 C32 0 36 4 36 10 C36 17 27 24 18 32Z" fill="#FF6B6B"/>
+    <path d="M32 32 C23 24 14 17 14 10 C14 4 18 0 24 0 C28 0 31 3 32 6 C33 3 36 0 40 0 C46 0 50 4 50 10 C50 17 41 24 32 32Z" fill="#FF8E53" opacity="0.85"/>
+    <circle cx="42" cy="3" r="3" fill="#FFC371"/>
+    <circle cx="47" cy="7" r="1.8" fill="#FFC371" opacity="0.6"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="66" y="35" font-family="'Outfit', 'SF Pro Display', -apple-system, sans-serif" font-size="30" font-weight="700" fill="#1a1a2e" letter-spacing="-0.5">moment</text>
+  <text x="237" y="35" font-family="'Outfit', 'SF Pro Display', -apple-system, sans-serif" font-size="30" font-weight="700" fill="#FF6B6B" letter-spacing="-0.5">ee</text>
+
+  <!-- Tagline -->
+  <text x="68" y="52" font-family="'Sora', 'SF Pro Text', -apple-system, sans-serif" font-size="8" fill="#999" letter-spacing="2.5">EVERY COUPLE HAS A STORY</text>
+</svg>

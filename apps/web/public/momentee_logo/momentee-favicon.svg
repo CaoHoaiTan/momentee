@@ -1,0 +1,15 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Momentee Favicon 32x32 -->
+  <defs>
+    <linearGradient id="fav-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF6B6B"/>
+      <stop offset="50%" stop-color="#FF8E53"/>
+      <stop offset="100%" stop-color="#FFC371"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="8" fill="url(#fav-grad)"/>
+  <g transform="translate(5, 7)">
+    <path d="M7 14 C3.5 10.5 0 7.5 0 5 C0 2 2 0 4.5 0 C6 0 7 1 7 2.5 C7 1 8 0 9.5 0 C12 0 14 2 14 5 C14 7.5 10.5 10.5 7 14Z" fill="white" opacity="0.95"/>
+    <path d="M13 14 C9.5 10.5 6 7.5 6 5 C6 2 8 0 10.5 0 C12 0 13 1 13 2.5 C13 1 14 0 15.5 0 C18 0 20 2 20 5 C20 7.5 16.5 10.5 13 14Z" fill="white" opacity="0.65"/>
+  </g>
+</svg>

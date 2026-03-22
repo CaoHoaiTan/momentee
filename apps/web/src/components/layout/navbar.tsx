@@ -15,24 +15,16 @@ export function Navbar() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <span className="text-2xl font-bold bg-gradient-to-r from-[var(--color-coral)] to-[var(--color-orange)] bg-clip-text text-transparent">
-            Momentee
-          </span>
+          <img src="/momentee_logo/momentee-logo-primary.svg" alt="Momentee" className="h-8" />
         </Link>
 
         {/* Desktop Navigation */}
         <div className="hidden items-center gap-6 md:flex">
-          <Link
-            href="/explore"
-            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-          >
+          <Link href="/explore" className="text-sm font-medium text-gray-600 transition-colors hover:text-[var(--color-coral)]">
             Explore
           </Link>
-          <Link
-            href="/about"
-            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            About
+          <Link href="/pricing" className="text-sm font-medium text-gray-600 transition-colors hover:text-[var(--color-coral)]">
+            Pricing
           </Link>
         </div>
 
@@ -41,34 +33,28 @@ export function Navbar() {
           {isAuthenticated ? (
             <div className="flex items-center gap-3">
               <NotificationBell />
-              <div className="flex items-center gap-2">
+              <Link href="/dashboard" className="flex items-center gap-2 rounded-full bg-gray-50 py-1.5 pl-1.5 pr-3 transition-colors hover:bg-gray-100">
                 {user?.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={user.name}
-                    className="h-8 w-8 rounded-full object-cover"
-                  />
+                  <img src={user.avatar} alt={user.name} className="h-7 w-7 rounded-full object-cover" />
                 ) : (
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-coral)] text-sm font-medium text-white">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[var(--color-coral)] to-[var(--color-orange)] text-xs font-bold text-white">
                     {user?.name?.charAt(0).toUpperCase()}
                   </div>
                 )}
                 <span className="text-sm font-medium text-gray-700">{user?.name}</span>
-              </div>
-              <Button variant="ghost" size="sm" onClick={logout}>
+              </Link>
+              <Button variant="ghost" size="sm" onClick={logout} className="text-gray-400 hover:text-gray-600">
                 Logout
               </Button>
             </div>
           ) : (
             <>
               <Link href="/login">
-                <Button variant="ghost" size="sm">
-                  Login
-                </Button>
+                <Button variant="ghost" size="sm">Login</Button>
               </Link>
               <Link href="/register">
-                <Button variant="primary" size="sm">
-                  Register
+                <Button variant="primary" size="sm" className="!rounded-full">
+                  Get Started
                 </Button>
               </Link>
             </>
@@ -81,13 +67,7 @@ export function Navbar() {
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Toggle menu"
         >
-          <svg
-            className="h-6 w-6 text-gray-600"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
+          <svg className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             {mobileMenuOpen ? (
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             ) : (
@@ -101,51 +81,32 @@ export function Navbar() {
       {mobileMenuOpen && (
         <div className="border-t border-gray-100 bg-white px-4 py-4 md:hidden">
           <div className="flex flex-col gap-3">
-            <Link
-              href="/explore"
-              className="text-sm font-medium text-gray-600 hover:text-gray-900"
-              onClick={() => setMobileMenuOpen(false)}
-            >
+            <Link href="/explore" className="text-sm font-medium text-gray-600 hover:text-[var(--color-coral)]" onClick={() => setMobileMenuOpen(false)}>
               Explore
             </Link>
-            <Link
-              href="/about"
-              className="text-sm font-medium text-gray-600 hover:text-gray-900"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              About
+            <Link href="/pricing" className="text-sm font-medium text-gray-600 hover:text-[var(--color-coral)]" onClick={() => setMobileMenuOpen(false)}>
+              Pricing
             </Link>
             <hr className="border-gray-100" />
             {isAuthenticated ? (
               <>
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-coral)] text-sm font-medium text-white">
+                <Link href="/dashboard" className="flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[var(--color-coral)] to-[var(--color-orange)] text-sm font-bold text-white">
                     {user?.name?.charAt(0).toUpperCase()}
                   </div>
                   <span className="text-sm font-medium text-gray-700">{user?.name}</span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    logout();
-                    setMobileMenuOpen(false);
-                  }}
-                >
+                </Link>
+                <Button variant="ghost" size="sm" onClick={() => { logout(); setMobileMenuOpen(false); }}>
                   Logout
                 </Button>
               </>
             ) : (
               <>
                 <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" size="sm" className="w-full">
-                    Login
-                  </Button>
+                  <Button variant="ghost" size="sm" className="w-full">Login</Button>
                 </Link>
                 <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="primary" size="sm" className="w-full">
-                    Register
-                  </Button>
+                  <Button variant="primary" size="sm" className="w-full !rounded-full">Get Started</Button>
                 </Link>
               </>
             )}

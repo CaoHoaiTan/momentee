@@ -1,0 +1,26 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Momentee App Icon: 512x512 -->
+  <defs>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF6B6B"/>
+      <stop offset="50%" stop-color="#FF8E53"/>
+      <stop offset="100%" stop-color="#FFC371"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bg-grad)"/>
+
+  <!-- Duo hearts icon -->
+  <g transform="translate(110, 140)">
+    <!-- Left heart (primary) -->
+    <path d="M100 200 C50 150 0 108 0 68 C0 28 28 0 62 0 C82 0 98 14 100 36 C102 14 118 0 138 0 C172 0 200 28 200 68 C200 108 150 150 100 200Z" fill="white" opacity="0.95"/>
+    <!-- Right heart (offset) -->
+    <path d="M170 200 C120 150 70 108 70 68 C70 28 98 0 132 0 C152 0 168 14 170 36 C172 14 188 0 208 0 C242 0 270 28 270 68 C270 108 220 150 170 200Z" fill="white" opacity="0.7"/>
+  </g>
+
+  <!-- Sparkle accents -->
+  <circle cx="385" cy="145" r="22" fill="white" opacity="0.7"/>
+  <circle cx="410" cy="178" r="14" fill="white" opacity="0.4"/>
+  <circle cx="395" cy="118" r="8" fill="white" opacity="0.3"/>
+</svg>

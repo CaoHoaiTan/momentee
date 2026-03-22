@@ -23,6 +23,10 @@ export const metadata: Metadata = {
   title: 'Momentee — Every couple has a story',
   description:
     'A social network for couples to preserve memories, share love stories, and receive blessings from friends & family.',
+  icons: {
+    icon: '/momentee_logo/momentee-favicon.svg',
+    apple: '/momentee_logo/momentee-icon-512.svg',
+  },
 };
 
 export default function RootLayout({

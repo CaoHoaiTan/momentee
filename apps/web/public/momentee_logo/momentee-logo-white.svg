@@ -1,0 +1,17 @@
+<svg width="320" height="50" viewBox="0 0 320 50" xmlns="http://www.w3.org/2000/svg">
+  <!-- Momentee Logo: White version for dark backgrounds -->
+
+  <!-- Icon: Duo hearts in brand colors -->
+  <g transform="translate(4, 6)">
+    <path d="M16 28 C8 21 0 15 0 9 C0 4 4 0 9 0 C12 0 15 2 16 5 C17 2 20 0 23 0 C28 0 32 4 32 9 C32 15 24 21 16 28Z" fill="#FF6B6B"/>
+    <path d="M28 28 C20 21 12 15 12 9 C12 4 16 0 21 0 C24 0 27 2 28 5 C29 2 32 0 35 0 C40 0 44 4 44 9 C44 15 36 21 28 28Z" fill="#FF8E53" opacity="0.85"/>
+    <circle cx="37" cy="2" r="2.5" fill="#FFC371"/>
+    <circle cx="41" cy="6" r="1.5" fill="#FFC371" opacity="0.5"/>
+  </g>
+
+  <!-- Wordmark (white) -->
+  <text x="58" y="28" font-family="'Outfit', 'SF Pro Display', -apple-system, sans-serif" font-size="26" font-weight="700" fill="white" letter-spacing="-0.5">momentee</text>
+
+  <!-- Tagline (dimmed white) -->
+  <text x="60" y="44" font-family="'Sora', 'SF Pro Text', -apple-system, sans-serif" font-size="7" fill="rgba(255,255,255,0.5)" letter-spacing="2.5">EVERY COUPLE HAS A STORY</text>
+</svg>

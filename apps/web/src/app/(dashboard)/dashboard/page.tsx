@@ -5,38 +5,24 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../../hooks/useAuth';
 import { useCouple } from '../../../hooks/useCouple';
-import { Card } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { LoadingSpinner } from '../../../components/ui/loading-spinner';
 
-function StatCard({
-  label,
-  value,
-  color,
-  icon,
-}: {
-  label: string;
-  value: number;
-  color: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <Card>
-      <div className="flex items-center gap-4">
-        <div
-          className="flex h-12 w-12 items-center justify-center rounded-xl"
-          style={{ backgroundColor: `${color}15` }}
-        >
-          <div style={{ color }}>{icon}</div>
-        </div>
-        <div>
-          <p className="text-sm text-gray-500">{label}</p>
-          <p className="text-2xl font-bold text-gray-900">{value.toLocaleString()}</p>
-        </div>
-      </div>
-    </Card>
-  );
-}
+const STATS_CONFIG = [
+  { key: 'daysTogether', label: 'Days Together', emoji: '💕', gradient: 'from-[var(--color-coral)] to-[var(--color-orange)]', bgLight: 'bg-[var(--color-coral)]/5' },
+  { key: 'totalWishes', label: 'Total Wishes', emoji: '💌', gradient: 'from-[var(--color-teal)] to-[#34d399]', bgLight: 'bg-[var(--color-teal)]/5' },
+  { key: 'totalPhotos', label: 'Total Photos', emoji: '📸', gradient: 'from-[var(--color-orange)] to-[var(--color-gold)]', bgLight: 'bg-[var(--color-orange)]/5' },
+  { key: 'viewCount', label: 'Page Views', emoji: '👀', gradient: 'from-[var(--color-purple)] to-[#a78bfa]', bgLight: 'bg-[var(--color-purple)]/5' },
+];
+
+const QUICK_ACTIONS = [
+  { href: '/dashboard/posts', label: 'Create Post', emoji: '📸', description: 'Share a new moment', color: 'var(--color-coral)' },
+  { href: '/dashboard/milestones', label: 'Add Milestone', emoji: '✨', description: 'Mark a special day', color: 'var(--color-gold)' },
+  { href: '/dashboard/wishes', label: 'View Wishes', emoji: '💌', description: 'Read your blessings', color: 'var(--color-teal)' },
+  { href: '/dashboard/events', label: 'Plan Event', emoji: '📅', description: 'Organize a gathering', color: 'var(--color-purple)' },
+  { href: '/dashboard/quiz', label: 'Create Quiz', emoji: '🧩', description: 'Test your friends', color: 'var(--color-orange)' },
+  { href: '/dashboard/gift', label: 'Gift Registry', emoji: '🎁', description: 'Manage gift accounts', color: 'var(--color-coral)' },
+];
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -44,168 +30,115 @@ export default function DashboardPage() {
   const { couple, loading: coupleLoading } = useCouple();
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/login');
-    }
+    if (!authLoading && !isAuthenticated) router.push('/login');
   }, [authLoading, isAuthenticated, router]);
 
   useEffect(() => {
-    if (!authLoading && !coupleLoading && isAuthenticated && !couple) {
-      router.push('/onboarding');
-    }
+    if (!authLoading && !coupleLoading && isAuthenticated && !couple) router.push('/onboarding');
   }, [authLoading, coupleLoading, isAuthenticated, couple, router]);
 
   if (authLoading || coupleLoading) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
+    return <div className="flex min-h-[50vh] items-center justify-center"><LoadingSpinner size="lg" /></div>;
   }
 
   if (!isAuthenticated || !couple) return null;
 
+  const statValues: Record<string, number> = {
+    daysTogether: couple.daysTogether,
+    totalWishes: couple.totalWishes,
+    totalPhotos: couple.totalPhotos,
+    viewCount: couple.viewCount,
+  };
+
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">
-          Welcome, {user?.name}!
-        </h1>
-        <p className="mt-1 text-gray-500">
-          Here&apos;s what&apos;s happening with{' '}
-          <span className="font-medium text-[var(--color-coral)]">
-            {couple.displayName}
-          </span>
-          .
-        </p>
+      {/* Welcome header */}
+      <div className="rounded-2xl bg-gradient-to-r from-[var(--color-coral)] via-[var(--color-orange)] to-[var(--color-purple)] p-6 text-white shadow-lg shadow-[var(--color-coral)]/20 sm:p-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-medium text-white/70">Welcome back,</p>
+            <h1 className="text-2xl font-bold sm:text-3xl">{user?.name} 👋</h1>
+            <p className="mt-1 text-white/80">
+              Managing <span className="font-semibold">{couple.displayName}</span>
+            </p>
+          </div>
+          <Link href={`/${couple.slug}`} target="_blank">
+            <Button variant="outline" size="sm" className="!border-white/30 !text-white hover:!bg-white/10">
+              View Public Page
+              <svg className="ml-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Stats */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          label="Days Together"
-          value={couple.daysTogether}
-          color="var(--color-coral)"
-          icon={
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
-          }
-        />
-        <StatCard
-          label="Total Wishes"
-          value={couple.totalWishes}
-          color="var(--color-teal)"
-          icon={
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-            </svg>
-          }
-        />
-        <StatCard
-          label="Total Photos"
-          value={couple.totalPhotos}
-          color="var(--color-orange)"
-          icon={
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          }
-        />
-        <StatCard
-          label="Page Views"
-          value={couple.viewCount}
-          color="var(--color-purple)"
-          icon={
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          }
-        />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {STATS_CONFIG.map((stat) => (
+          <div key={stat.key} className={`rounded-2xl ${stat.bgLight} p-5 ring-1 ring-gray-100 transition-all hover:-translate-y-0.5 hover:shadow-md`}>
+            <div className="flex items-center gap-3">
+              <div className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${stat.gradient} text-xl shadow-sm`}>
+                {stat.emoji}
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-500">{stat.label}</p>
+                <p className="text-2xl font-bold text-gray-900">{statValues[stat.key]?.toLocaleString() ?? 0}</p>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Quick Actions */}
       <div>
         <h2 className="mb-4 text-lg font-semibold text-gray-900">Quick Actions</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Link href="/dashboard/posts">
-            <Card className="cursor-pointer transition-shadow hover:shadow-md">
-              <div className="text-center">
-                <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-coral)]/10">
-                  <svg className="h-5 w-5 text-[var(--color-coral)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                  </svg>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {QUICK_ACTIONS.map((action) => (
+            <Link key={action.href} href={action.href}>
+              <div className="group flex items-center gap-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-100 transition-all hover:-translate-y-0.5 hover:shadow-md hover:ring-[var(--color-coral)]/20">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-2xl transition-transform group-hover:scale-110" style={{ backgroundColor: `${action.color}12` }}>
+                  {action.emoji}
                 </div>
-                <p className="text-sm font-medium text-gray-700">Create Post</p>
-              </div>
-            </Card>
-          </Link>
-          <Link href="/dashboard/milestones">
-            <Card className="cursor-pointer transition-shadow hover:shadow-md">
-              <div className="text-center">
-                <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-gold)]/10">
-                  <svg className="h-5 w-5 text-[var(--color-gold)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                  </svg>
+                <div>
+                  <p className="font-semibold text-gray-900">{action.label}</p>
+                  <p className="text-xs text-gray-500">{action.description}</p>
                 </div>
-                <p className="text-sm font-medium text-gray-700">Add Milestone</p>
+                <svg className="ml-auto h-5 w-5 text-gray-300 transition-colors group-hover:text-[var(--color-coral)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
               </div>
-            </Card>
-          </Link>
-          <Link href={`/${couple.slug}`} target="_blank">
-            <Card className="cursor-pointer transition-shadow hover:shadow-md">
-              <div className="text-center">
-                <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-teal)]/10">
-                  <svg className="h-5 w-5 text-[var(--color-teal)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </div>
-                <p className="text-sm font-medium text-gray-700">View Page</p>
-              </div>
-            </Card>
-          </Link>
-          {!couple.partner2 && (
-            <Card className="border-dashed">
-              <div className="text-center">
-                <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-purple)]/10">
-                  <svg className="h-5 w-5 text-[var(--color-purple)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                  </svg>
-                </div>
-                <p className="text-sm font-medium text-gray-700">Invite Partner</p>
-              </div>
-            </Card>
-          )}
+            </Link>
+          ))}
         </div>
       </div>
 
-      {/* Invite Partner Section */}
+      {/* Invite Partner */}
       {!couple.partner2 && couple.inviteCode && (
-        <Card>
+        <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-[var(--color-purple)]/10 to-[var(--color-teal)]/10 p-6 ring-1 ring-[var(--color-purple)]/20">
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
-            <div>
-              <h3 className="font-semibold text-gray-900">Invite Your Partner</h3>
-              <p className="text-sm text-gray-500">
-                Share this code so your partner can join your couple page.
-              </p>
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">💍</span>
+              <div>
+                <h3 className="font-semibold text-gray-900">Invite Your Partner</h3>
+                <p className="text-sm text-gray-500">Share this code so they can join your couple page</p>
+              </div>
             </div>
             <div className="flex items-center gap-2">
-              <code className="rounded-lg bg-gray-100 px-4 py-2 text-lg font-mono font-bold tracking-wider text-[var(--color-coral)]">
+              <code className="rounded-xl bg-white px-5 py-2.5 text-lg font-mono font-bold tracking-widest text-[var(--color-purple)] shadow-sm">
                 {couple.inviteCode}
               </code>
               <Button
-                variant="outline"
+                variant="primary"
                 size="sm"
-                onClick={() => {
-                  navigator.clipboard.writeText(couple.inviteCode!);
-                }}
+                className="!bg-[var(--color-purple)] hover:!bg-[var(--color-purple-dark)]"
+                onClick={() => navigator.clipboard.writeText(couple.inviteCode!)}
               >
                 Copy
               </Button>
             </div>
           </div>
-        </Card>
+        </div>
       )}
     </div>
   );

@@ -318,7 +318,7 @@ test.describe('Frontend — Dashboard', () => {
 
     // Should go to dashboard (user has a couple)
     await expect(
-      page.getByText('Welcome, Dashboard User!'),
+      page.getByText('Welcome back,'),
     ).toBeVisible({ timeout: 15000 });
 
     // Stats cards should be visible
@@ -329,7 +329,7 @@ test.describe('Frontend — Dashboard', () => {
 
     // Quick actions
     await expect(page.getByText('Create Post')).toBeVisible();
-    await expect(page.getByText('View Page')).toBeVisible();
+    await expect(page.getByText('View Public Page')).toBeVisible();
 
     // Invite partner section (no partner2)
     await expect(page.getByText('Invite Your Partner')).toBeVisible();
@@ -401,10 +401,10 @@ test.describe('Frontend — Settings', () => {
     await loginViaUI(page, email, password);
 
     // Wait for dashboard to load, then navigate to settings via sidebar
-    await expect(page.getByText('Welcome, Settings User!')).toBeVisible({
+    await expect(page.getByText('Welcome back,')).toBeVisible({
       timeout: 15000,
     });
-    await page.getByRole('link', { name: 'Settings' }).click();
+    await page.getByRole('link', { name: 'Settings', exact: true }).click();
     await page.waitForURL('**/settings', { timeout: 5000 });
 
     // Wait for form to populate
@@ -436,10 +436,10 @@ test.describe('Frontend — Settings', () => {
     await loginViaUI(page, email, password);
 
     // Wait for dashboard, then navigate to settings
-    await expect(page.getByText('Welcome, Settings User!')).toBeVisible({
+    await expect(page.getByText('Welcome back,')).toBeVisible({
       timeout: 15000,
     });
-    await page.getByRole('link', { name: 'Settings' }).click();
+    await page.getByRole('link', { name: 'Settings', exact: true }).click();
     await page.waitForURL('**/settings', { timeout: 5000 });
 
     // Wait for form
@@ -680,7 +680,7 @@ test.describe('Frontend — Milestones page', () => {
   test('shows empty state and add button', async ({ page }) => {
     await loginViaUI(page, email, password);
 
-    await expect(page.getByText('Welcome, Milestone UI User!')).toBeVisible({
+    await expect(page.getByText('Welcome back,')).toBeVisible({
       timeout: 15000,
     });
 
@@ -698,7 +698,7 @@ test.describe('Frontend — Milestones page', () => {
   test('create milestone via form', async ({ page }) => {
     await loginViaUI(page, email, password);
 
-    await expect(page.getByText('Welcome, Milestone UI User!')).toBeVisible({
+    await expect(page.getByText('Welcome back,')).toBeVisible({
       timeout: 15000,
     });
     await page.getByRole('link', { name: 'Milestones' }).click();
@@ -725,7 +725,7 @@ test.describe('Frontend — Milestones page', () => {
   test('edit milestone', async ({ page }) => {
     await loginViaUI(page, email, password);
 
-    await expect(page.getByText('Welcome, Milestone UI User!')).toBeVisible({
+    await expect(page.getByText('Welcome back,')).toBeVisible({
       timeout: 15000,
     });
     await page.getByRole('link', { name: 'Milestones' }).click();
@@ -753,7 +753,7 @@ test.describe('Frontend — Milestones page', () => {
   test('delete milestone', async ({ page }) => {
     await loginViaUI(page, email, password);
 
-    await expect(page.getByText('Welcome, Milestone UI User!')).toBeVisible({
+    await expect(page.getByText('Welcome back,')).toBeVisible({
       timeout: 15000,
     });
     await page.getByRole('link', { name: 'Milestones' }).click();
