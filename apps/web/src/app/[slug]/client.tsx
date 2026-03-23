@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation } from '@apollo/client/react';
+import { useAuth } from '../../hooks/useAuth';
 import { INCREMENT_VIEW_COUNT } from '../../graphql/mutations/couple.mutations';
 import { GET_MILESTONES } from '../../graphql/queries/milestone.queries';
 import { GET_POSTS } from '../../graphql/queries/post.queries';
@@ -12,6 +14,7 @@ import { GET_EVENTS } from '../../graphql/queries/event.queries';
 import { CREATE_RSVP } from '../../graphql/mutations/event.mutations';
 import { GET_GIFT_ACCOUNTS } from '../../graphql/queries/gift.queries';
 import { GET_ALBUMS } from '../../graphql/queries/album.queries';
+import { GET_QUIZZES } from '../../graphql/queries/quiz.queries';
 import { AnimatePresence } from 'framer-motion';
 import { RsvpForm } from '../../components/couple/rsvp-form';
 import { Gallery } from '../../components/couple/gallery';
@@ -29,11 +32,15 @@ import { Card } from '../../components/ui/card';
 import { ThemeProvider } from '../../lib/theme-provider';
 import { resolveThemeId, getTheme } from '../../lib/themes';
 import { parseLayoutConfig, mergeWithThemeDefaults } from '../../lib/layout-config';
+import { parseMusicConfig } from '../../lib/music-config';
+import { sanitizeCss } from '../../lib/css-sanitizer';
+import { MusicPlayer } from '../../components/couple/music-player';
 import { ScrollReveal } from '../../components/couple/scroll-reveal';
 import { SectionDivider } from '../../components/couple/section-divider';
 import { Particles } from '../../components/couple/particles';
 import { LoveMeter } from '../../components/couple/love-meter';
 import { EventCardEnhanced } from '../../components/couple/event-card-enhanced';
+import { QuizPlayer } from '../../components/couple/quiz-player';
 
 interface Partner {
   id: string;
@@ -51,6 +58,7 @@ interface CoupleData {
   weddingDate: string | null;
   theme: string;
   layoutConfig: string | null;
+  backgroundMusic: string | null;
   isPublic: boolean;
   viewCount: number;
   daysTogether: number;
@@ -280,10 +288,16 @@ function AlbumSection({ albums, galleryMode }: { albums: { id: string; title: st
 }
 
 export function CouplePageClient({ couple }: { couple: CoupleData }) {
+  const { user, isAuthenticated } = useAuth();
+  const isOwner = isAuthenticated && user && (
+    user.id === couple.partner1.id || user.id === couple.partner2?.id
+  );
+
   const themeId = resolveThemeId(couple.theme);
   const theme = getTheme(themeId);
   const userConfig = parseLayoutConfig(couple.layoutConfig);
   const layout = mergeWithThemeDefaults(userConfig, theme);
+  const musicConfig = parseMusicConfig(couple.backgroundMusic);
 
   const [incrementView] = useMutation(INCREMENT_VIEW_COUNT);
   const [createWish, { loading: creatingWish }] = useMutation(CREATE_WISH, {
@@ -363,11 +377,22 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
     variables: { coupleId: couple.id },
   });
 
+  const { data: quizzesData } = useQuery<{
+    quizzes: {
+      id: string;
+      title: string;
+      description: string | null;
+      isActive: boolean;
+    }[];
+  }>(GET_QUIZZES, {
+    variables: { coupleId: couple.id },
+  });
+
   useEffect(() => {
     incrementView({ variables: { slug: couple.slug } }).catch(() => {});
   }, [couple.slug, incrementView]);
 
-  const defaultOrder = ['hero', 'stats', 'timeline', 'gallery', 'albums', 'wishes', 'events', 'gifts'];
+  const defaultOrder = ['hero', 'stats', 'timeline', 'gallery', 'albums', 'wishes', 'quiz', 'events', 'gifts'];
   const sectionOrder = layout.sectionOrder?.length ? layout.sectionOrder : defaultOrder;
 
   const sectionRenderers: Record<string, () => React.ReactNode> = {
@@ -533,6 +558,21 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
           </div>
         </ScrollReveal>
       ) : null,
+
+    quiz: () =>
+      (quizzesData?.quizzes?.filter((q) => q.isActive).length ?? 0) > 0 ? (
+        <ScrollReveal key="quiz">
+          <div className="space-y-4">
+            <h2 className="text-center text-xl font-semibold" style={{ color: 'var(--theme-text)' }}>
+              Quiz Time
+            </h2>
+            <p className="text-center text-sm" style={{ color: 'var(--theme-text-muted)' }}>
+              How well do you know this couple?
+            </p>
+            <QuizPlayer quizzes={quizzesData!.quizzes} coupleId={couple.id} />
+          </div>
+        </ScrollReveal>
+      ) : null,
   };
 
   const wishSectionRef = useRef<HTMLDivElement>(null);
@@ -554,12 +594,35 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
       <Particles type={theme.particles} />
       <MobileFab onWishClick={scrollToWishes} />
 
+      {/* Owner floating nav — back to dashboard */}
+      {isOwner && (
+        <Link href="/dashboard">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 1, duration: 0.4 }}
+            className="fixed bottom-6 left-4 z-50 flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium shadow-lg backdrop-blur-md"
+            style={{
+              background: 'var(--theme-surface, #fff)',
+              color: 'var(--theme-text, #111)',
+              border: '1px solid var(--theme-border, #e5e7eb)',
+            }}
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Dashboard
+          </motion.div>
+        </Link>
+      )}
+      {musicConfig?.enabled && musicConfig.tracks.length > 0 && (
+        <MusicPlayer config={musicConfig} slug={couple.slug} />
+      )}
+
       {/* Custom CSS injection (scoped, sanitized) */}
       {layout.customCss && (
         <style dangerouslySetInnerHTML={{
-          __html: layout.customCss
-            .replace(/@import\b/gi, '/* blocked */')
-            .replace(/url\s*\(/gi, '/* blocked */('),
+          __html: sanitizeCss(layout.customCss),
         }} />
       )}
 

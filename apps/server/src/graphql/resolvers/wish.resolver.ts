@@ -1,6 +1,7 @@
 import { createWishSchema } from '@momentee/shared';
 import * as wishService from '../../services/wish.service.js';
 import { requireAuth } from '../../utils/errors.js';
+import { checkRateLimit } from '../../utils/rate-limiter.js';
 import type { GQLContext } from '../context.js';
 
 function stripNulls(obj: Record<string, unknown>): Record<string, unknown> {
@@ -29,8 +30,11 @@ export const wishResolvers = {
     createWish: async (
       _parent: unknown,
       args: { coupleId: string; input: Record<string, unknown> },
+      context: GQLContext,
     ) => {
       // No auth required — guests can leave wishes
+      const ip = context.req.ip ?? context.req.socket.remoteAddress ?? 'unknown';
+      checkRateLimit(ip, 'createWish', 10, 60 * 60 * 1000); // 10 per hour per IP
       const validated = createWishSchema.parse(stripNulls(args.input));
       return wishService.create(args.coupleId, validated);
     },

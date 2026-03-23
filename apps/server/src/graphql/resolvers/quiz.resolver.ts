@@ -1,5 +1,6 @@
 import * as quizService from '../../services/quiz.service.js';
 import { requireAuth } from '../../utils/errors.js';
+import { checkRateLimit } from '../../utils/rate-limiter.js';
 import type { GQLContext } from '../context.js';
 
 export const quizResolvers = {
@@ -39,8 +40,11 @@ export const quizResolvers = {
     submitQuiz: async (
       _parent: unknown,
       args: { quizId: string; input: { respondentName: string; answers: number[] } },
+      context: GQLContext,
     ) => {
       // No auth required — guests can take quizzes
+      const ip = context.req.ip ?? context.req.socket.remoteAddress ?? 'unknown';
+      checkRateLimit(`${ip}:${args.quizId}`, 'submitQuiz', 5, 60 * 60 * 1000); // 5 per hour per IP per quiz
       return quizService.submitQuiz(args.quizId, args.input);
     },
   },
@@ -57,7 +61,24 @@ export const quizResolvers = {
   QuizQuestion: {
     quizId: (parent: { quiz_id: string }) => parent.quiz_id,
     options: (parent: { options: string }) => JSON.parse(parent.options),
-    correctAnswer: (parent: { correct_answer: number }) => parent.correct_answer,
+    correctAnswer: async (
+      parent: { correct_answer: number; quiz_id: string },
+      _args: unknown,
+      context: GQLContext,
+    ) => {
+      // Hide correct answers from guests — only couple owners can see them
+      if (!context.user) return null;
+      const quiz = await quizService.getQuizById(parent.quiz_id);
+      const couple = await context.db
+        .selectFrom('couples')
+        .select(['partner1_id', 'partner2_id'])
+        .where('id', '=', quiz.couple_id)
+        .executeTakeFirst();
+      if (couple && (couple.partner1_id === context.user.userId || couple.partner2_id === context.user.userId)) {
+        return parent.correct_answer;
+      }
+      return null;
+    },
     sortOrder: (parent: { sort_order: number }) => parent.sort_order,
   },
 

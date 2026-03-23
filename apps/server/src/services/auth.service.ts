@@ -125,6 +125,14 @@ export async function refreshToken(token: string): Promise<AuthPayload> {
   return { accessToken, refreshToken: newRefreshToken, user };
 }
 
+export async function logout(userId: string): Promise<void> {
+  await db
+    .updateTable('users')
+    .set({ refresh_token: null })
+    .where('id', '=', userId)
+    .execute();
+}
+
 export async function me(userId: string) {
   return (
     db

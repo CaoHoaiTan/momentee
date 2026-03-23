@@ -7,6 +7,7 @@ import {
   ForbiddenError,
   ValidationError,
 } from '../utils/errors.js';
+import { PLAN_LIMITS } from '@momentee/shared';
 
 interface CreateCoupleInput {
   displayName: string;
@@ -21,6 +22,7 @@ interface UpdateCoupleInput {
   weddingDate?: string;
   theme?: string;
   layoutConfig?: string;
+  backgroundMusic?: string;
   coverPhoto?: string;
   isPublic?: boolean;
 }
@@ -134,6 +136,38 @@ export async function update(
       updateData.layout_config = JSON.parse(input.layoutConfig);
     } catch {
       updateData.layout_config = {};
+    }
+  }
+  if (input.backgroundMusic !== undefined) {
+    try {
+      const parsed = JSON.parse(input.backgroundMusic);
+      if (parsed && typeof parsed === 'object') {
+        const tracks = Array.isArray(parsed.tracks) ? parsed.tracks : [];
+        for (const track of tracks) {
+          if (track.audioUrl && !isValidJamendoUrl(track.audioUrl)) {
+            throw ValidationError('Invalid audio URL: only Jamendo URLs are allowed');
+          }
+          if (track.albumArt && !isValidJamendoUrl(track.albumArt)) {
+            throw ValidationError('Invalid album art URL: only Jamendo URLs are allowed');
+          }
+        }
+        // Enforce plan limit
+        const currentCouple = await getById(coupleId);
+        const planLimits = PLAN_LIMITS[currentCouple.plan];
+        const musicLimit = planLimits.music_tracks as number;
+        if (musicLimit >= 0 && tracks.length > musicLimit) {
+          throw ForbiddenError(
+            `Your plan allows ${musicLimit} music track(s). Upgrade to add more.`,
+          );
+        }
+        updateData.background_music = parsed;
+      } else {
+        updateData.background_music = null;
+      }
+    } catch (e: unknown) {
+      // Re-throw GraphQL errors; ignore JSON parse errors (set to null)
+      if (e && typeof e === 'object' && 'extensions' in e) throw e;
+      updateData.background_music = null;
     }
   }
   if (input.coverPhoto !== undefined)
@@ -254,6 +288,15 @@ function verifyOwnership(
 ) {
   if (couple.partner1_id !== userId && couple.partner2_id !== userId) {
     throw ForbiddenError('You are not a member of this couple');
+  }
+}
+
+function isValidJamendoUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname.endsWith('.jamendo.com');
+  } catch {
+    return false;
   }
 }
 

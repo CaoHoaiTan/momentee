@@ -21,6 +21,7 @@ export interface Couple {
   weddingDate: string | null;
   theme: string;
   layoutConfig: string | null;
+  backgroundMusic: string | null;
   isPublic: boolean;
   viewCount: number;
   plan: string;

@@ -62,7 +62,7 @@ function ImageGrid({ media }: { media: MediaData[] }) {
         src={media[0].url}
         alt=""
         loading="lazy"
-        className="aspect-video w-full rounded-xl object-cover"
+        className="aspect-square w-full rounded-xl object-cover"
       />
     );
   }
@@ -106,7 +106,10 @@ function ImageGrid({ media }: { media: MediaData[] }) {
 
 export function PostCard({ post, onDelete, isOwner = false }: PostCardProps) {
   return (
-    <div className="group relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition-shadow hover:shadow-md">
+    <div
+      className="group relative overflow-hidden rounded-2xl shadow-sm ring-1 transition-shadow hover:shadow-md"
+      style={{ background: 'var(--theme-surface, #fff)', borderColor: 'var(--theme-border, #f3f4f6)', '--tw-ring-color': 'var(--theme-border, #f3f4f6)' } as React.CSSProperties}
+    >
       {isOwner && onDelete && (
         <button
           onClick={() => onDelete(post.id)}
@@ -124,16 +127,16 @@ export function PostCard({ post, onDelete, isOwner = false }: PostCardProps) {
 
       {post.caption && (
         <div className="px-4 pb-2">
-          <p className="line-clamp-3 text-sm text-gray-700">{post.caption}</p>
+          <p className="line-clamp-3 text-sm" style={{ color: 'var(--theme-text, #374151)' }}>{post.caption}</p>
         </div>
       )}
 
       <div className="flex items-center gap-2 px-4 pb-3">
-        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+        <span className="rounded-full px-2 py-0.5 text-xs font-medium" style={{ background: 'var(--theme-bg, #f3f4f6)', color: 'var(--theme-text-muted, #4b5563)' }}>
           {TYPE_LABELS[post.type] ?? post.type}
         </span>
         <span className="text-xs">{VISIBILITY_ICONS[post.visibility] ?? ''}</span>
-        <span className="ml-auto text-xs text-gray-400">{relativeTime(post.createdAt)}</span>
+        <span className="ml-auto text-xs" style={{ color: 'var(--theme-text-muted, #9ca3af)' }}>{relativeTime(post.createdAt)}</span>
       </div>
     </div>
   );

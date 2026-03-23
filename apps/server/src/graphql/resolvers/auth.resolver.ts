@@ -26,7 +26,10 @@ export const authResolvers = {
       return authService.refreshToken(args.token);
     },
 
-    logout: async (_parent: unknown, _args: unknown, _context: GQLContext) => {
+    logout: async (_parent: unknown, _args: unknown, context: GQLContext) => {
+      if (context.user) {
+        await authService.logout(context.user.userId);
+      }
       return true;
     },
   },

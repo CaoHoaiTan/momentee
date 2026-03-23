@@ -16,6 +16,7 @@ export const coupleTypeDefs = gql`
     weddingDate: Date
     theme: String!
     layoutConfig: String
+    backgroundMusic: String
     customDomain: String
     isPublic: Boolean!
     viewCount: Int!
@@ -39,6 +40,7 @@ export const coupleTypeDefs = gql`
     weddingDate: String
     theme: String
     layoutConfig: String
+    backgroundMusic: String
     coverPhoto: String
     isPublic: Boolean
   }

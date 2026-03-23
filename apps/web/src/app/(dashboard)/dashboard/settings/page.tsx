@@ -16,9 +16,12 @@ import { ConfirmModal } from '../../../../components/ui/confirm-modal';
 import { HeroLayoutPicker, TimelineLayoutPicker, GalleryModePicker, WishDisplayPicker } from '../../../../components/ui/layout-picker';
 import { SectionReorder, DEFAULT_SECTION_ORDER } from '../../../../components/ui/section-reorder';
 import { CssEditor } from '../../../../components/ui/css-editor';
+import { MusicSettings } from '../../../../components/settings/music-settings';
 import { parseLayoutConfig, serializeLayoutConfig } from '../../../../lib/layout-config';
+import { parseMusicConfig, serializeMusicConfig } from '../../../../lib/music-config';
 import { getTheme } from '../../../../lib/themes';
 import type { HeroStyle, TimelineLayout, GalleryMode, WishDisplayMode } from '../../../../lib/themes';
+import type { BackgroundMusicConfig } from '../../../../lib/music-config';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -34,6 +37,9 @@ export default function SettingsPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // Music config state
+  const [musicConfig, setMusicConfig] = useState<BackgroundMusicConfig | null>(null);
 
   // Layout config state
   const [sectionOrder, setSectionOrder] = useState<string[]>(DEFAULT_SECTION_ORDER);
@@ -63,6 +69,9 @@ export default function SettingsPage() {
       setWeddingDate(couple.weddingDate || '');
       setTheme(couple.theme);
       setIsPublic(couple.isPublic);
+
+      // Parse music config
+      setMusicConfig(parseMusicConfig(couple.backgroundMusic));
 
       // Parse layout config
       const config = parseLayoutConfig(couple.layoutConfig);
@@ -120,6 +129,7 @@ export default function SettingsPage() {
             weddingDate: weddingDate || undefined,
             theme,
             layoutConfig,
+            backgroundMusic: musicConfig ? serializeMusicConfig(musicConfig) : undefined,
             isPublic,
           },
         },
@@ -221,6 +231,16 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+      </Card>
+
+      {/* Background Music */}
+      <Card>
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">Background Music</h2>
+        <MusicSettings
+          plan={couple.plan}
+          value={musicConfig}
+          onChange={setMusicConfig}
+        />
       </Card>
 
       {/* Custom CSS (Premium) */}

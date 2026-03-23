@@ -34,6 +34,22 @@ export const GET_QUIZ = gql`
   }
 `;
 
+export const GET_QUIZ_FOR_GUEST = gql`
+  query QuizForGuest($id: ID!) {
+    quiz(id: $id) {
+      id
+      title
+      description
+      questions {
+        id
+        question
+        options
+        sortOrder
+      }
+    }
+  }
+`;
+
 export const GET_QUIZ_LEADERBOARD = gql`
   query QuizLeaderboard($quizId: ID!) {
     quizLeaderboard(quizId: $quizId) {

@@ -16,7 +16,7 @@ export const quizTypeDefs = gql`
     quizId: ID!
     question: String!
     options: [String!]!
-    correctAnswer: Int!
+    correctAnswer: Int
     sortOrder: Int!
   }
 

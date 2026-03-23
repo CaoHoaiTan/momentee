@@ -2,7 +2,13 @@ import { z } from 'zod';
 
 export const registerSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password must be at most 128 characters')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number'),
   name: z.string().min(2).max(100),
 });
 
@@ -40,6 +46,7 @@ export const updateCoupleSchema = z.object({
   weddingDate: z.string().optional(),
   theme: z.string().max(50).optional(),
   layoutConfig: z.string().max(2000).optional(),
+  backgroundMusic: z.string().max(5000).optional(),
   coverPhoto: z.string().optional(),
   isPublic: z.boolean().optional(),
 });

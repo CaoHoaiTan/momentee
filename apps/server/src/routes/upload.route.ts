@@ -1,5 +1,6 @@
 import { Router, type IRouter } from 'express';
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import { uploadImage, uploadAvatar } from '../utils/cloudinary.js';
 import { verifyAccessToken } from '../utils/jwt.js';
 
@@ -7,6 +8,18 @@ const router: IRouter = Router();
 
 // Increase body size limit for base64 uploads (10MB)
 router.use('/api/upload', express.json({ limit: '10mb' }));
+
+// Rate limit uploads: 30 per 15 minutes per IP
+router.use(
+  '/api/upload',
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many uploads. Please try again later.' },
+  }),
+);
 
 // Auth middleware
 router.use('/api/upload', (req, res, next) => {

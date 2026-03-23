@@ -39,6 +39,7 @@ export interface CouplesTable {
   is_pinned: boolean;
   view_count: number;
   layout_config: Record<string, unknown> | null;
+  background_music: Record<string, unknown> | null;
   plan: 'free' | 'premium' | 'premium_plus';
   created_at: Created;
   updated_at: Updated;

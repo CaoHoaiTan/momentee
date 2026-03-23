@@ -16,6 +16,7 @@ const envSchema = z.object({
   CLOUDINARY_URL: z.string().optional(),
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  JAMENDO_CLIENT_ID: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);

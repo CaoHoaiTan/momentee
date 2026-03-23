@@ -46,6 +46,16 @@ export async function checkPlanLimit(
       .select(db.fn.countAll<number>().as('count'))
       .executeTakeFirstOrThrow();
     current = Number(result.count);
+  } else if (feature === 'music_tracks') {
+    const result = await db
+      .selectFrom('couples')
+      .select('background_music')
+      .where('id', '=', coupleId)
+      .executeTakeFirst();
+    if (result?.background_music) {
+      const config = result.background_music as { tracks?: unknown[] };
+      current = Array.isArray(config.tracks) ? config.tracks.length : 0;
+    }
   }
 
   return { allowed: current < limit, current, limit };

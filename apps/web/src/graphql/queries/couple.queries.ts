@@ -13,6 +13,7 @@ export const GET_MY_COUPLE = gql`
       weddingDate
       theme
       layoutConfig
+      backgroundMusic
       isPublic
       viewCount
       plan
@@ -48,6 +49,7 @@ export const GET_COUPLE_BY_SLUG = gql`
       weddingDate
       theme
       layoutConfig
+      backgroundMusic
       isPublic
       viewCount
       daysTogether
@@ -81,6 +83,7 @@ export const GET_COUPLE_BY_ID = gql`
       weddingDate
       theme
       layoutConfig
+      backgroundMusic
       isPublic
       viewCount
       plan

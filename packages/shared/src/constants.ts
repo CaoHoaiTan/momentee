@@ -35,17 +35,20 @@ export const PLAN_LIMITS = {
     posts: 50,
     albums: 3,
     media_per_post: 5,
+    music_tracks: 0,
   },
   premium: {
     milestones: 100,
     posts: 500,
     albums: 20,
     media_per_post: 20,
+    music_tracks: 1,
   },
   premium_plus: {
     milestones: -1,
     posts: -1,
     albums: -1,
     media_per_post: -1,
+    music_tracks: 3,
   },
 } as const;

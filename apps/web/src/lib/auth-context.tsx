@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useMutation, useQuery } from '@apollo/client/react';
-import { LOGIN_MUTATION, REGISTER_MUTATION } from '../graphql/mutations/auth.mutations';
+import { LOGIN_MUTATION, REGISTER_MUTATION, LOGOUT_MUTATION } from '../graphql/mutations/auth.mutations';
 import { ME_QUERY } from '../graphql/queries/user.queries';
 
 interface User {
@@ -50,6 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const [loginMutation] = useMutation<LoginData>(LOGIN_MUTATION);
   const [registerMutation] = useMutation<RegisterData>(REGISTER_MUTATION);
+  const [logoutMutation] = useMutation(LOGOUT_MUTATION);
 
   useEffect(() => {
     const token = localStorage.getItem('momentee_access_token');
@@ -105,10 +106,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const logout = useCallback(() => {
+    // Best-effort server-side token invalidation
+    logoutMutation().catch(() => {});
     localStorage.removeItem('momentee_access_token');
     localStorage.removeItem('momentee_refresh_token');
     setUser(null);
-  }, []);
+  }, [logoutMutation]);
 
   const isAuthenticated = !!user;
 

@@ -6,11 +6,13 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
+import depthLimit from 'graphql-depth-limit';
 import { typeDefs, resolvers } from './graphql/schema.js';
 import { createContext, type GQLContext } from './graphql/context.js';
 import healthRouter from './routes/health.route.js';
 import webhookRouter from './routes/webhook.route.js';
 import uploadRouter from './routes/upload.route.js';
+import musicRouter from './routes/music.route.js';
 import { env } from './config/env.js';
 
 async function main() {
@@ -49,12 +51,14 @@ async function main() {
   app.use(healthRouter);
   app.use(webhookRouter);
   app.use(uploadRouter);
+  app.use(musicRouter);
 
   // Apollo Server
   const server = new ApolloServer<GQLContext>({
     typeDefs,
     resolvers,
     introspection: env.NODE_ENV === 'development',
+    validationRules: [depthLimit(7)],
   });
 
   await server.start();
@@ -62,7 +66,7 @@ async function main() {
   app.use(
     '/graphql',
     graphqlLimiter,
-    express.json({ limit: '50mb' }),
+    express.json({ limit: '2mb' }),
     expressMiddleware(server, {
       context: async ({ req }) => createContext({ req: req as any }),
     }) as any,

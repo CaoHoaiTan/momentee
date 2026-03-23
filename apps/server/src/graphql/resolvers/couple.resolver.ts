@@ -118,6 +118,8 @@ export const coupleResolvers = {
     isPublic: (parent: { is_public: boolean }) => parent.is_public,
     layoutConfig: (parent: { layout_config: Record<string, unknown> | null }) =>
       parent.layout_config ? JSON.stringify(parent.layout_config) : null,
+    backgroundMusic: (parent: { background_music: Record<string, unknown> | null }) =>
+      parent.background_music ? JSON.stringify(parent.background_music) : null,
     viewCount: (parent: { view_count: number }) => parent.view_count,
     createdAt: (parent: { created_at: Date }) => parent.created_at,
     inviteCode: (
