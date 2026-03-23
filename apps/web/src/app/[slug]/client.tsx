@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { INCREMENT_VIEW_COUNT } from '../../graphql/mutations/couple.mutations';
 import { GET_MILESTONES } from '../../graphql/queries/milestone.queries';
@@ -18,7 +18,9 @@ import type { WishData } from '../../components/couple/wish-card';
 import { WishWall } from '../../components/couple/wish-wall';
 import { CoupleHero } from '../../components/couple/couple-hero';
 import { CoupleStats } from '../../components/couple/couple-stats';
-import { ShareButton } from '../../components/couple/share-button';
+import { ShareButtons } from '../../components/couple/share-buttons';
+import { MobileFab } from '../../components/couple/mobile-fab';
+import { QrShare } from '../../components/couple/qr-share';
 import { Timeline } from '../../components/couple/timeline';
 import { Card } from '../../components/ui/card';
 import { ThemeProvider } from '../../lib/theme-provider';
@@ -147,8 +149,8 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
           weddingDate={couple.weddingDate}
         />
         <div className="flex items-center justify-between">
-          <div />
-          <ShareButton slug={couple.slug} />
+          <QrShare slug={couple.slug} size={120} />
+          <ShareButtons slug={couple.slug} displayName={couple.displayName} />
         </div>
         <SectionDivider type={theme.divider} color={theme.colors.primary} />
       </React.Fragment>
@@ -301,10 +303,24 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
       ) : null,
   };
 
+  const wishSectionRef = useRef<HTMLDivElement>(null);
+  const scrollToWishes = useCallback(() => {
+    wishSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+  // Wrap the wishes renderer to attach ref
+  const originalWishes = sectionRenderers.wishes;
+  sectionRenderers.wishes = () => (
+    <div ref={wishSectionRef} key="wishes-wrapper">
+      {originalWishes()}
+    </div>
+  );
+
   return (
     <ThemeProvider themeId={themeId}>
       <LoveMeter />
       <Particles type={theme.particles} />
+      <MobileFab onWishClick={scrollToWishes} />
 
       <div className="relative z-10 mx-auto max-w-4xl space-y-8 px-4 py-8">
         {sectionOrder.map((sectionId) => {

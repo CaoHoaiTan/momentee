@@ -38,7 +38,7 @@ export const updateCoupleSchema = z.object({
   bio: z.string().max(500).optional(),
   anniversary: z.string().optional(),
   weddingDate: z.string().optional(),
-  theme: z.string().max(30).optional(),
+  theme: z.string().max(50).optional(),
   layoutConfig: z.string().max(2000).optional(),
   coverPhoto: z.string().optional(),
   isPublic: z.boolean().optional(),

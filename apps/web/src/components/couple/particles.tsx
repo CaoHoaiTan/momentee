@@ -42,6 +42,9 @@ export function Particles({ type, count = 15 }: ParticlesProps) {
 
   useEffect(() => {
     if (type === 'none') return;
+    // Respect prefers-reduced-motion
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) return;
     // Reduce count on mobile
     const isMobile = window.innerWidth < 768;
     setParticles(generateParticles(type, isMobile ? Math.floor(count / 2) : count));

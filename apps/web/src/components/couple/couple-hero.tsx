@@ -4,6 +4,7 @@ import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useTheme } from '../../lib/theme-provider';
 import { Countdown } from './countdown';
+import { EasterEgg } from './easter-egg';
 
 interface CoupleHeroProps {
   displayName: string;
@@ -102,7 +103,9 @@ export function CoupleHero({
             primary={theme.colors.primary}
             secondary={theme.colors.secondary}
           />
-          <div className="text-3xl font-handwriting sm:text-4xl">&amp;</div>
+          <EasterEgg>
+            <span className="text-3xl font-handwriting sm:text-4xl">&amp;</span>
+          </EasterEgg>
           {partner2Name ? (
             <AvatarRing
               avatar={partner2Avatar}
