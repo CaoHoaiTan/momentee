@@ -10,6 +10,8 @@ import { CREATE_GIFT_ACCOUNT, UPDATE_GIFT_ACCOUNT, DELETE_GIFT_ACCOUNT } from '.
 import { ConfirmModal } from '../../../../components/ui/confirm-modal';
 import { Button } from '../../../../components/ui/button';
 import { LoadingSpinner } from '../../../../components/ui/loading-spinner';
+import { MediaUpload, fileToBase64 } from '../../../../components/couple/media-upload';
+import type { MediaFile } from '../../../../components/couple/media-upload';
 
 interface GiftAccountData {
   id: string;
@@ -29,6 +31,7 @@ export default function GiftPage() {
   const { couple, loading: coupleLoading } = useCouple();
 
   const [formOpen, setFormOpen] = useState(false);
+  const [editAccount, setEditAccount] = useState<GiftAccountData | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   // Form state
@@ -36,6 +39,7 @@ export default function GiftPage() {
   const [accountNumber, setAccountNumber] = useState('');
   const [accountHolder, setAccountHolder] = useState('');
   const [note, setNote] = useState('');
+  const [qrCodeFiles, setQrCodeFiles] = useState<MediaFile[]>([]);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) router.push('/login');
@@ -52,6 +56,7 @@ export default function GiftPage() {
 
   const refetchConfig = { refetchQueries: [{ query: GET_GIFT_ACCOUNTS, variables: { coupleId: couple?.id } }] };
   const [createGift, { loading: creating }] = useMutation(CREATE_GIFT_ACCOUNT, refetchConfig);
+  const [updateGift, { loading: updating }] = useMutation(UPDATE_GIFT_ACCOUNT, refetchConfig);
   const [deleteGift, { loading: deleting }] = useMutation(DELETE_GIFT_ACCOUNT, refetchConfig);
 
   if (authLoading || coupleLoading) {
@@ -60,25 +65,75 @@ export default function GiftPage() {
   if (!isAuthenticated || !couple) return null;
 
   const accounts = data?.giftAccounts ?? [];
+  const isEditing = !!editAccount;
+  const formLoading = creating || updating;
 
-  const handleCreate = async () => {
-    if (!bankName.trim() || !accountNumber.trim()) return;
-    await createGift({
-      variables: {
-        coupleId: couple.id,
-        input: {
-          bankName: bankName.trim(),
-          accountNumber: accountNumber.trim(),
-          accountHolder: accountHolder.trim() || null,
-          note: note.trim() || null,
-        },
-      },
-    });
-    setFormOpen(false);
+  const resetForm = () => {
     setBankName('');
     setAccountNumber('');
     setAccountHolder('');
     setNote('');
+    setQrCodeFiles([]);
+  };
+
+  const openCreateForm = () => {
+    resetForm();
+    setEditAccount(null);
+    setFormOpen(true);
+  };
+
+  const openEditForm = (account: GiftAccountData) => {
+    setBankName(account.bankName ?? '');
+    setAccountNumber(account.accountNumber ?? '');
+    setAccountHolder(account.accountHolder ?? '');
+    setNote(account.note ?? '');
+    setQrCodeFiles([]);
+    setEditAccount(account);
+    setFormOpen(true);
+  };
+
+  const closeForm = () => {
+    setFormOpen(false);
+    setEditAccount(null);
+    resetForm();
+  };
+
+  const handleSubmit = async () => {
+    if (!bankName.trim() || !accountNumber.trim()) return;
+
+    let qrCode: string | null = null;
+    if (qrCodeFiles.length > 0) {
+      qrCode = await fileToBase64(qrCodeFiles[0].file);
+    }
+
+    if (isEditing && editAccount) {
+      await updateGift({
+        variables: {
+          id: editAccount.id,
+          input: {
+            bankName: bankName.trim(),
+            accountNumber: accountNumber.trim(),
+            accountHolder: accountHolder.trim() || null,
+            note: note.trim() || null,
+            ...(qrCode ? { qrCode } : {}),
+          },
+        },
+      });
+    } else {
+      await createGift({
+        variables: {
+          coupleId: couple.id,
+          input: {
+            bankName: bankName.trim(),
+            accountNumber: accountNumber.trim(),
+            accountHolder: accountHolder.trim() || null,
+            note: note.trim() || null,
+            ...(qrCode ? { qrCode } : {}),
+          },
+        },
+      });
+    }
+    closeForm();
   };
 
   const handleDelete = async () => {
@@ -98,7 +153,7 @@ export default function GiftPage() {
           <h1 className="text-3xl font-bold text-gray-900">Gift Accounts</h1>
           <p className="mt-1 text-gray-500">Bank accounts for receiving monetary gifts.</p>
         </div>
-        <Button variant="primary" size="sm" onClick={() => setFormOpen(true)}>Add Account</Button>
+        <Button variant="primary" size="sm" onClick={openCreateForm}>Add Account</Button>
       </div>
 
       {accountsLoading ? (
@@ -108,44 +163,62 @@ export default function GiftPage() {
           <span className="text-5xl">🎁</span>
           <h3 className="mt-4 text-lg font-semibold text-gray-900">No gift accounts yet</h3>
           <p className="mt-1 text-sm text-gray-500">Add your bank accounts so friends can send gifts</p>
-          <Button variant="primary" size="sm" className="mt-4" onClick={() => setFormOpen(true)}>Add Account</Button>
+          <Button variant="primary" size="sm" className="mt-4" onClick={openCreateForm}>Add Account</Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           {accounts.map((account) => (
-            <div key={account.id} className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-semibold text-gray-900">{account.bankName}</h3>
-                  <div className="mt-2 space-y-1 text-sm text-gray-600">
-                    <p>
-                      Account: <span className="font-mono font-medium">{account.accountNumber}</span>
-                      <button
-                        onClick={() => copyToClipboard(account.accountNumber ?? '')}
-                        className="ml-2 text-[var(--color-coral)] hover:underline"
-                      >
-                        Copy
-                      </button>
-                    </p>
-                    {account.accountHolder && <p>Holder: {account.accountHolder}</p>}
-                    {account.note && <p className="text-gray-400">{account.note}</p>}
+            <div key={account.id} className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
+              {account.qrCode && (
+                <div className="flex justify-center bg-gray-50 p-4">
+                  <img
+                    src={account.qrCode}
+                    alt="QR Code"
+                    className="h-32 w-32 rounded-lg object-contain"
+                  />
+                </div>
+              )}
+              <div className="p-5">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900">{account.bankName}</h3>
+                    <div className="mt-2 space-y-1 text-sm text-gray-600">
+                      <p>
+                        Account: <span className="font-mono font-medium">{account.accountNumber}</span>
+                        <button
+                          onClick={() => copyToClipboard(account.accountNumber ?? '')}
+                          className="ml-2 text-[var(--color-coral)] hover:underline"
+                        >
+                          Copy
+                        </button>
+                      </p>
+                      {account.accountHolder && <p>Holder: {account.accountHolder}</p>}
+                      {account.note && <p className="text-gray-400">{account.note}</p>}
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => openEditForm(account)}>
+                      Edit
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => setDeleteId(account.id)} className="!text-red-500">
+                      Delete
+                    </Button>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => setDeleteId(account.id)} className="!text-red-500">
-                  Delete
-                </Button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Create Form Modal */}
+      {/* Create / Edit Form Modal */}
       {formOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setFormOpen(false)} />
-          <div className="relative mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-gray-900">Add Gift Account</h3>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={closeForm} />
+          <div className="relative mx-4 max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {isEditing ? 'Edit Gift Account' : 'Add Gift Account'}
+            </h3>
             <div className="mt-4 space-y-4">
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Bank Name</label>
@@ -187,10 +260,27 @@ export default function GiftPage() {
                   className="w-full rounded-xl border border-gray-200 px-4 py-2 text-sm outline-none transition-colors focus:border-[var(--color-coral)] focus:ring-1 focus:ring-[var(--color-coral)]"
                 />
               </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  QR Code Image (optional)
+                </label>
+                {isEditing && editAccount?.qrCode && qrCodeFiles.length === 0 && (
+                  <div className="mb-2 flex items-center gap-2">
+                    <img src={editAccount.qrCode} alt="Current QR" className="h-16 w-16 rounded-lg object-contain ring-1 ring-gray-200" />
+                    <span className="text-xs text-gray-400">Current QR code. Upload a new one to replace.</span>
+                  </div>
+                )}
+                <MediaUpload
+                  files={qrCodeFiles}
+                  onChange={setQrCodeFiles}
+                  maxFiles={1}
+                  disabled={formLoading}
+                />
+              </div>
               <div className="flex justify-end gap-3 pt-2">
-                <Button variant="ghost" size="sm" onClick={() => setFormOpen(false)} disabled={creating}>Cancel</Button>
-                <Button variant="primary" size="sm" loading={creating} onClick={handleCreate} disabled={!bankName.trim() || !accountNumber.trim()}>
-                  Add Account
+                <Button variant="ghost" size="sm" onClick={closeForm} disabled={formLoading}>Cancel</Button>
+                <Button variant="primary" size="sm" loading={formLoading} onClick={handleSubmit} disabled={!bankName.trim() || !accountNumber.trim()}>
+                  {isEditing ? 'Save Changes' : 'Add Account'}
                 </Button>
               </div>
             </div>

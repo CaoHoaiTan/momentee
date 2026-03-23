@@ -1,6 +1,16 @@
 import { createId } from '@paralleldrive/cuid2';
 import { db } from '../config/database.js';
 import { NotFoundError, ForbiddenError } from '../utils/errors.js';
+import { uploadImage } from '../utils/cloudinary.js';
+
+async function resolveQrCode(qrCode: string | undefined | null): Promise<string | null> {
+  if (!qrCode) return null;
+  if (qrCode.startsWith('data:')) {
+    const result = await uploadImage(qrCode, 'gift-qr');
+    return result.url;
+  }
+  return qrCode;
+}
 
 interface CreateGiftAccountInput {
   bankName?: string;
@@ -22,6 +32,8 @@ interface UpdateGiftAccountInput {
 export async function create(coupleId: string, userId: string, input: CreateGiftAccountInput) {
   await verifyCoupleOwnership(coupleId, userId);
 
+  const qrUrl = await resolveQrCode(input.qrCode);
+
   const account = await db
     .insertInto('gift_accounts')
     .values({
@@ -30,7 +42,7 @@ export async function create(coupleId: string, userId: string, input: CreateGift
       bank_name: input.bankName ?? null,
       account_number: input.accountNumber ?? null,
       account_holder: input.accountHolder ?? null,
-      qr_code: input.qrCode ?? null,
+      qr_code: qrUrl,
       note: input.note ?? null,
       is_active: true,
     })
@@ -68,7 +80,7 @@ export async function update(id: string, userId: string, input: UpdateGiftAccoun
   if (input.bankName !== undefined) updateData.bank_name = input.bankName;
   if (input.accountNumber !== undefined) updateData.account_number = input.accountNumber;
   if (input.accountHolder !== undefined) updateData.account_holder = input.accountHolder;
-  if (input.qrCode !== undefined) updateData.qr_code = input.qrCode;
+  if (input.qrCode !== undefined) updateData.qr_code = await resolveQrCode(input.qrCode);
   if (input.note !== undefined) updateData.note = input.note;
   if (input.isActive !== undefined) updateData.is_active = input.isActive;
 

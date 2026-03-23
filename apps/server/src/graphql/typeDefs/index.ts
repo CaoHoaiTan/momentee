@@ -12,5 +12,6 @@ import { notificationTypeDefs } from './notification.graphql.js';
 import { billingTypeDefs } from './billing.graphql.js';
 import { exploreTypeDefs } from './explore.graphql.js';
 import { adminTypeDefs } from './admin.graphql.js';
+import { albumTypeDefs } from './album.graphql.js';
 
-export const typeDefs = [userTypeDefs, authTypeDefs, coupleTypeDefs, milestoneTypeDefs, postTypeDefs, wishTypeDefs, reactionTypeDefs, eventTypeDefs, quizTypeDefs, giftTypeDefs, notificationTypeDefs, billingTypeDefs, exploreTypeDefs, adminTypeDefs];
+export const typeDefs = [userTypeDefs, authTypeDefs, coupleTypeDefs, milestoneTypeDefs, postTypeDefs, wishTypeDefs, reactionTypeDefs, eventTypeDefs, quizTypeDefs, giftTypeDefs, notificationTypeDefs, billingTypeDefs, exploreTypeDefs, adminTypeDefs, albumTypeDefs];

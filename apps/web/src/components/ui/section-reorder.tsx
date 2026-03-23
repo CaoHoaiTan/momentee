@@ -14,6 +14,7 @@ const DEFAULT_SECTIONS: Section[] = [
   { id: 'stats', label: 'Stats', icon: '📊' },
   { id: 'timeline', label: 'Timeline', icon: '📅' },
   { id: 'gallery', label: 'Gallery', icon: '🖼️' },
+  { id: 'albums', label: 'Albums', icon: '📸' },
   { id: 'wishes', label: 'Wishes', icon: '💌' },
   { id: 'events', label: 'Events', icon: '🎉' },
   { id: 'gifts', label: 'Gift Registry', icon: '🎁' },
