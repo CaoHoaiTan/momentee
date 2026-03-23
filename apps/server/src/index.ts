@@ -16,6 +16,9 @@ import { env } from './config/env.js';
 async function main() {
   const app = express();
 
+  // Trust first proxy (Render's load balancer) for correct req.ip and rate limiting
+  app.set('trust proxy', 1);
+
   // Global middleware — relax CSP in dev for Apollo Sandbox
   app.use(
     helmet({
