@@ -1,5 +1,5 @@
-import { HttpLink, ApolloLink, Observable } from '@apollo/client';
-import { onError } from '@apollo/client/link/error';
+import { HttpLink, ApolloLink, Observable, CombinedGraphQLErrors } from '@apollo/client';
+import { ErrorLink } from '@apollo/client/link/error';
 import { ApolloClient, InMemoryCache } from '@apollo/experimental-nextjs-app-support';
 import { print } from 'graphql';
 import { REFRESH_TOKEN_MUTATION } from '../graphql/mutations/auth.mutations';
@@ -27,7 +27,8 @@ function resolvePendingRequests() {
   pendingRequests = [];
 }
 
-const errorLink = onError(({ graphQLErrors, operation, forward }) => {
+const errorLink = new ErrorLink(({ error, operation, forward }) => {
+  const graphQLErrors = CombinedGraphQLErrors.is(error) ? error.errors : undefined;
   if (typeof window === 'undefined') return;
 
   const isUnauthenticated = graphQLErrors?.some(
