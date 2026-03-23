@@ -12,6 +12,7 @@ export const GET_MY_COUPLE = gql`
       anniversary
       weddingDate
       theme
+      layoutConfig
       isPublic
       viewCount
       plan
@@ -46,6 +47,7 @@ export const GET_COUPLE_BY_SLUG = gql`
       anniversary
       weddingDate
       theme
+      layoutConfig
       isPublic
       viewCount
       daysTogether
@@ -78,6 +80,7 @@ export const GET_COUPLE_BY_ID = gql`
       anniversary
       weddingDate
       theme
+      layoutConfig
       isPublic
       viewCount
       plan

@@ -23,6 +23,7 @@ import { Timeline } from '../../components/couple/timeline';
 import { Card } from '../../components/ui/card';
 import { ThemeProvider } from '../../lib/theme-provider';
 import { resolveThemeId, getTheme } from '../../lib/themes';
+import { parseLayoutConfig, mergeWithThemeDefaults } from '../../lib/layout-config';
 import { ScrollReveal } from '../../components/couple/scroll-reveal';
 import { SectionDivider } from '../../components/couple/section-divider';
 import { Particles } from '../../components/couple/particles';
@@ -44,6 +45,7 @@ interface CoupleData {
   anniversary: string | null;
   weddingDate: string | null;
   theme: string;
+  layoutConfig: string | null;
   isPublic: boolean;
   viewCount: number;
   daysTogether: number;
@@ -56,6 +58,8 @@ interface CoupleData {
 export function CouplePageClient({ couple }: { couple: CoupleData }) {
   const themeId = resolveThemeId(couple.theme);
   const theme = getTheme(themeId);
+  const userConfig = parseLayoutConfig(couple.layoutConfig);
+  const layout = mergeWithThemeDefaults(userConfig, theme);
 
   const [incrementView] = useMutation(INCREMENT_VIEW_COUNT);
   const [createWish, { loading: creatingWish }] = useMutation(CREATE_WISH, {
@@ -125,12 +129,12 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
     incrementView({ variables: { slug: couple.slug } }).catch(() => {});
   }, [couple.slug, incrementView]);
 
-  return (
-    <ThemeProvider themeId={themeId}>
-      <LoveMeter />
-      <Particles type={theme.particles} />
+  const defaultOrder = ['hero', 'stats', 'timeline', 'gallery', 'wishes', 'events', 'gifts'];
+  const sectionOrder = layout.sectionOrder?.length ? layout.sectionOrder : defaultOrder;
 
-      <div className="relative z-10 mx-auto max-w-4xl space-y-8 px-4 py-8">
+  const sectionRenderers: Record<string, () => React.ReactNode> = {
+    hero: () => (
+      <React.Fragment key="hero">
         <CoupleHero
           displayName={couple.displayName}
           coverPhoto={couple.coverPhoto}
@@ -142,14 +146,16 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
           anniversary={couple.anniversary}
           weddingDate={couple.weddingDate}
         />
-
         <div className="flex items-center justify-between">
           <div />
           <ShareButton slug={couple.slug} />
         </div>
-
         <SectionDivider type={theme.divider} color={theme.colors.primary} />
+      </React.Fragment>
+    ),
 
+    stats: () => (
+      <React.Fragment key="stats">
         <ScrollReveal>
           <Card>
             <CoupleStats
@@ -160,7 +166,6 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
             />
           </Card>
         </ScrollReveal>
-
         {couple.anniversary && (
           <ScrollReveal delay={0.1}>
             <Card>
@@ -177,155 +182,135 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
             </Card>
           </ScrollReveal>
         )}
-
         <SectionDivider type={theme.divider} color={theme.colors.primary} />
+      </React.Fragment>
+    ),
 
-        {/* Timeline */}
-        {(milestonesData?.milestones?.length ?? 0) > 0 && (
-          <ScrollReveal>
-            <Card>
-              <h2
-                className="mb-6 text-center text-xl font-semibold"
-                style={{ color: 'var(--theme-text)' }}
-              >
-                Our Timeline
-              </h2>
-              <Timeline
-                milestones={milestonesData!.milestones}
-                layout={theme.layout.timeline}
-              />
-            </Card>
-          </ScrollReveal>
-        )}
-
-        {/* Gallery */}
-        {(postsData?.posts?.length ?? 0) > 0 && (
-          <ScrollReveal>
-            <Card>
-              <h2
-                className="mb-6 text-center text-xl font-semibold"
-                style={{ color: 'var(--theme-text)' }}
-              >
-                Our Gallery
-              </h2>
-              <Gallery
-                posts={postsData!.posts}
-                mode={theme.layout.gallery}
-              />
-            </Card>
-          </ScrollReveal>
-        )}
-
-        <SectionDivider type={theme.divider} color={theme.colors.primary} />
-
-        {/* Wishes */}
-        <ScrollReveal>
-          <div className="space-y-4">
-            <h2
-              className="text-center text-xl font-semibold"
-              style={{ color: 'var(--theme-text)' }}
-            >
-              Wishes & Blessings
+    timeline: () =>
+      (milestonesData?.milestones?.length ?? 0) > 0 ? (
+        <ScrollReveal key="timeline">
+          <Card>
+            <h2 className="mb-6 text-center text-xl font-semibold" style={{ color: 'var(--theme-text)' }}>
+              Our Timeline
             </h2>
-            <WishForm
-              onSubmit={async (data) => {
-                await createWish({
-                  variables: { coupleId: couple.id, input: data },
-                });
-              }}
-              loading={creatingWish}
-            />
-            {(wishesData?.wishes?.length ?? 0) > 0 && (
-              theme.layout.wishDisplay === 'wall' ? (
-                <WishWall wishes={wishesData!.wishes} />
-              ) : (
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {wishesData!.wishes.map((wish) => (
-                    <WishCard key={wish.id} wish={wish} />
-                  ))}
-                </div>
-              )
-            )}
+            <Timeline milestones={milestonesData!.milestones} layout={layout.timelineLayout} />
+          </Card>
+        </ScrollReveal>
+      ) : null,
+
+    gallery: () =>
+      (postsData?.posts?.length ?? 0) > 0 ? (
+        <ScrollReveal key="gallery">
+          <Card>
+            <h2 className="mb-6 text-center text-xl font-semibold" style={{ color: 'var(--theme-text)' }}>
+              Our Gallery
+            </h2>
+            <Gallery posts={postsData!.posts} mode={layout.galleryMode} />
+          </Card>
+        </ScrollReveal>
+      ) : null,
+
+    wishes: () => (
+      <ScrollReveal key="wishes">
+        <div className="space-y-4">
+          <h2 className="text-center text-xl font-semibold" style={{ color: 'var(--theme-text)' }}>
+            Wishes & Blessings
+          </h2>
+          <WishForm
+            onSubmit={async (data) => {
+              await createWish({ variables: { coupleId: couple.id, input: data } });
+            }}
+            loading={creatingWish}
+          />
+          {(wishesData?.wishes?.length ?? 0) > 0 &&
+            (layout.wishDisplay === 'wall' ? (
+              <WishWall wishes={wishesData!.wishes} />
+            ) : (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {wishesData!.wishes.map((wish) => (
+                  <WishCard key={wish.id} wish={wish} />
+                ))}
+              </div>
+            ))}
+        </div>
+      </ScrollReveal>
+    ),
+
+    events: () =>
+      (eventsData?.events?.filter((e) => e.isPublic).length ?? 0) > 0 ? (
+        <ScrollReveal key="events">
+          <div className="space-y-4">
+            <h2 className="text-center text-xl font-semibold" style={{ color: 'var(--theme-text)' }}>
+              Upcoming Events
+            </h2>
+            {eventsData!.events
+              .filter((e) => e.isPublic)
+              .map((event) => (
+                <EventCardEnhanced key={event.id} event={event}>
+                  <RsvpForm
+                    onSubmit={async (data) => {
+                      await createRsvp({
+                        variables: { eventId: event.id, input: data },
+                        refetchQueries: [{ query: GET_EVENTS, variables: { coupleId: couple.id } }],
+                      });
+                    }}
+                    loading={creatingRsvp}
+                  />
+                </EventCardEnhanced>
+              ))}
           </div>
         </ScrollReveal>
+      ) : null,
 
-        {/* Events */}
-        {(eventsData?.events?.filter((e) => e.isPublic).length ?? 0) > 0 && (
-          <ScrollReveal>
-            <div className="space-y-4">
-              <h2
-                className="text-center text-xl font-semibold"
-                style={{ color: 'var(--theme-text)' }}
-              >
-                Upcoming Events
-              </h2>
-              {eventsData!.events
-                .filter((e) => e.isPublic)
-                .map((event) => (
-                  <EventCardEnhanced key={event.id} event={event}>
-                    <RsvpForm
-                      onSubmit={async (data) => {
-                        await createRsvp({
-                          variables: { eventId: event.id, input: data },
-                          refetchQueries: [{ query: GET_EVENTS, variables: { coupleId: couple.id } }],
-                        });
-                      }}
-                      loading={creatingRsvp}
-                    />
-                  </EventCardEnhanced>
+    gifts: () =>
+      (giftData?.giftAccounts?.filter((g) => g.isActive).length ?? 0) > 0 ? (
+        <ScrollReveal key="gifts">
+          <Card>
+            <h2 className="mb-4 text-center text-xl font-semibold" style={{ color: 'var(--theme-text)' }}>
+              Gift Registry
+            </h2>
+            <div className="space-y-3">
+              {giftData!.giftAccounts
+                .filter((g) => g.isActive)
+                .map((account) => (
+                  <div key={account.id} className="rounded-xl p-4" style={{ background: 'var(--theme-surface)' }}>
+                    <p className="font-semibold" style={{ color: 'var(--theme-text)' }}>{account.bankName}</p>
+                    <p className="mt-1 font-mono text-sm" style={{ color: 'var(--theme-text-muted)' }}>
+                      {account.accountNumber}
+                    </p>
+                    {account.accountHolder && (
+                      <p className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>{account.accountHolder}</p>
+                    )}
+                    {account.note && (
+                      <p className="mt-1 text-xs" style={{ color: 'var(--theme-text-muted)', opacity: 0.7 }}>
+                        {account.note}
+                      </p>
+                    )}
+                    <button
+                      onClick={() => navigator.clipboard.writeText(account.accountNumber ?? '')}
+                      className="mt-2 text-xs font-medium hover:underline"
+                      style={{ color: 'var(--color-coral)' }}
+                    >
+                      Copy Account Number
+                    </button>
+                  </div>
                 ))}
             </div>
-          </ScrollReveal>
-        )}
+          </Card>
+        </ScrollReveal>
+      ) : null,
+  };
 
-        {/* Gift Accounts */}
-        {(giftData?.giftAccounts?.filter((g) => g.isActive).length ?? 0) > 0 && (
-          <ScrollReveal>
-            <Card>
-              <h2
-                className="mb-4 text-center text-xl font-semibold"
-                style={{ color: 'var(--theme-text)' }}
-              >
-                Gift Registry
-              </h2>
-              <div className="space-y-3">
-                {giftData!.giftAccounts
-                  .filter((g) => g.isActive)
-                  .map((account) => (
-                    <div
-                      key={account.id}
-                      className="rounded-xl p-4"
-                      style={{ background: 'var(--theme-surface)' }}
-                    >
-                      <p className="font-semibold" style={{ color: 'var(--theme-text)' }}>
-                        {account.bankName}
-                      </p>
-                      <p className="mt-1 font-mono text-sm" style={{ color: 'var(--theme-text-muted)' }}>
-                        {account.accountNumber}
-                      </p>
-                      {account.accountHolder && (
-                        <p className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>
-                          {account.accountHolder}
-                        </p>
-                      )}
-                      {account.note && (
-                        <p className="mt-1 text-xs" style={{ color: 'var(--theme-text-muted)', opacity: 0.7 }}>
-                          {account.note}
-                        </p>
-                      )}
-                      <button
-                        onClick={() => navigator.clipboard.writeText(account.accountNumber ?? '')}
-                        className="mt-2 text-xs font-medium hover:underline"
-                        style={{ color: 'var(--color-coral)' }}
-                      >
-                        Copy Account Number
-                      </button>
-                    </div>
-                  ))}
-              </div>
-            </Card>
-          </ScrollReveal>
-        )}
+  return (
+    <ThemeProvider themeId={themeId}>
+      <LoveMeter />
+      <Particles type={theme.particles} />
+
+      <div className="relative z-10 mx-auto max-w-4xl space-y-8 px-4 py-8">
+        {sectionOrder.map((sectionId) => {
+          const render = sectionRenderers[sectionId];
+          return render ? render() : null;
+        })}
       </div>
     </ThemeProvider>
   );

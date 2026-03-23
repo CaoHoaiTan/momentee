@@ -116,6 +116,8 @@ export const coupleResolvers = {
     customDomain: (parent: { custom_domain: string | null }) =>
       parent.custom_domain,
     isPublic: (parent: { is_public: boolean }) => parent.is_public,
+    layoutConfig: (parent: { layout_config: Record<string, unknown> | null }) =>
+      parent.layout_config ? JSON.stringify(parent.layout_config) : null,
     viewCount: (parent: { view_count: number }) => parent.view_count,
     createdAt: (parent: { created_at: Date }) => parent.created_at,
     inviteCode: (

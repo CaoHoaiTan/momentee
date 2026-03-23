@@ -20,6 +20,7 @@ export interface Couple {
   anniversary: string | null;
   weddingDate: string | null;
   theme: string;
+  layoutConfig: string | null;
   isPublic: boolean;
   viewCount: number;
   plan: string;

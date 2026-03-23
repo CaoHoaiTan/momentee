@@ -20,6 +20,7 @@ interface UpdateCoupleInput {
   anniversary?: string;
   weddingDate?: string;
   theme?: string;
+  layoutConfig?: string;
   coverPhoto?: string;
   isPublic?: boolean;
 }
@@ -128,6 +129,13 @@ export async function update(
   if (input.weddingDate !== undefined)
     updateData.wedding_date = input.weddingDate;
   if (input.theme !== undefined) updateData.theme = input.theme;
+  if (input.layoutConfig !== undefined) {
+    try {
+      updateData.layout_config = JSON.parse(input.layoutConfig);
+    } catch {
+      updateData.layout_config = {};
+    }
+  }
   if (input.coverPhoto !== undefined)
     updateData.cover_photo = input.coverPhoto;
   if (input.isPublic !== undefined) updateData.is_public = input.isPublic;

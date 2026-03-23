@@ -13,6 +13,11 @@ import { Card } from '../../../../components/ui/card';
 import { LoadingSpinner } from '../../../../components/ui/loading-spinner';
 import { ThemeSelector } from '../../../../components/ui/theme-selector';
 import { ConfirmModal } from '../../../../components/ui/confirm-modal';
+import { TimelineLayoutPicker, GalleryModePicker, WishDisplayPicker } from '../../../../components/ui/layout-picker';
+import { SectionReorder, DEFAULT_SECTION_ORDER } from '../../../../components/ui/section-reorder';
+import { parseLayoutConfig, serializeLayoutConfig } from '../../../../lib/layout-config';
+import { getTheme } from '../../../../lib/themes';
+import type { TimelineLayout, GalleryMode, WishDisplayMode } from '../../../../lib/themes';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -28,6 +33,12 @@ export default function SettingsPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // Layout config state
+  const [sectionOrder, setSectionOrder] = useState<string[]>(DEFAULT_SECTION_ORDER);
+  const [timelineLayout, setTimelineLayout] = useState<TimelineLayout>('alternating');
+  const [galleryMode, setGalleryMode] = useState<GalleryMode>('grid');
+  const [wishDisplay, setWishDisplay] = useState<WishDisplayMode>('cards');
 
   const [updateCouple, { loading: updating }] = useMutation(UPDATE_COUPLE, {
     refetchQueries: [{ query: GET_MY_COUPLE }],
@@ -49,8 +60,26 @@ export default function SettingsPage() {
       setWeddingDate(couple.weddingDate || '');
       setTheme(couple.theme);
       setIsPublic(couple.isPublic);
+
+      // Parse layout config
+      const config = parseLayoutConfig(couple.layoutConfig);
+      const themeDefaults = getTheme(couple.theme);
+      if (config.sectionOrder?.length) setSectionOrder(config.sectionOrder);
+      setTimelineLayout(config.timelineLayout ?? themeDefaults.layout.timeline);
+      setGalleryMode(config.galleryMode ?? themeDefaults.layout.gallery);
+      setWishDisplay(config.wishDisplay ?? themeDefaults.layout.wishDisplay);
     }
   }, [couple]);
+
+  // When theme changes, reset layout to theme defaults (unless user has overrides)
+  useEffect(() => {
+    if (!couple) return;
+    const config = parseLayoutConfig(couple.layoutConfig);
+    const themeDefaults = getTheme(theme);
+    if (!config.timelineLayout) setTimelineLayout(themeDefaults.layout.timeline);
+    if (!config.galleryMode) setGalleryMode(themeDefaults.layout.gallery);
+    if (!config.wishDisplay) setWishDisplay(themeDefaults.layout.wishDisplay);
+  }, [theme, couple]);
 
   if (authLoading || coupleLoading) {
     return (
@@ -66,6 +95,13 @@ export default function SettingsPage() {
     setError('');
     setSuccess('');
     try {
+      const layoutConfig = serializeLayoutConfig({
+        sectionOrder,
+        timelineLayout,
+        galleryMode,
+        wishDisplay,
+      });
+
       await updateCouple({
         variables: {
           id: couple.id,
@@ -75,6 +111,7 @@ export default function SettingsPage() {
             anniversary: anniversary || undefined,
             weddingDate: weddingDate || undefined,
             theme,
+            layoutConfig,
             isPublic,
           },
         },
@@ -156,6 +193,25 @@ export default function SettingsPage() {
       <Card>
         <h2 className="mb-4 text-lg font-semibold text-gray-900">Appearance</h2>
         <ThemeSelector value={theme} onChange={setTheme} />
+      </Card>
+
+      {/* Layout Customization */}
+      <Card>
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">Page Layout</h2>
+        <p className="mb-6 text-sm text-gray-500">
+          Customize how sections appear on your public page.
+        </p>
+        <div className="space-y-6">
+          <SectionReorder value={sectionOrder} onChange={setSectionOrder} />
+          <div className="border-t border-gray-100 pt-6">
+            <h3 className="mb-4 text-sm font-semibold text-gray-700">Section Styles</h3>
+            <div className="space-y-5">
+              <TimelineLayoutPicker value={timelineLayout} onChange={setTimelineLayout} />
+              <GalleryModePicker value={galleryMode} onChange={setGalleryMode} />
+              <WishDisplayPicker value={wishDisplay} onChange={setWishDisplay} />
+            </div>
+          </div>
+        </div>
       </Card>
 
       {/* Privacy */}

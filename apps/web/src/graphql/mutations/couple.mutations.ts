@@ -31,6 +31,7 @@ export const UPDATE_COUPLE = gql`
       anniversary
       weddingDate
       theme
+      layoutConfig
       coverPhoto
       isPublic
       inviteCode

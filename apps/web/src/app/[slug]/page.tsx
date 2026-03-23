@@ -17,6 +17,7 @@ interface CoupleQueryData {
     anniversary: string | null;
     weddingDate: string | null;
     theme: string;
+    layoutConfig: string | null;
     isPublic: boolean;
     viewCount: number;
     daysTogether: number;
