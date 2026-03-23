@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import type { TimelineLayout, GalleryMode, WishDisplayMode } from '../../lib/themes';
+import type { HeroStyle, TimelineLayout, GalleryMode, WishDisplayMode } from '../../lib/themes';
 
 interface LayoutOption<T extends string> {
   value: T;
@@ -50,6 +50,12 @@ function LayoutPicker<T extends string>({
   );
 }
 
+const heroOptions: LayoutOption<HeroStyle>[] = [
+  { value: 'cinematic', label: 'Cinematic', icon: '🎬', description: 'Fullscreen parallax' },
+  { value: 'split', label: 'Split', icon: '👫', description: 'Side-by-side partners' },
+  { value: 'minimal', label: 'Minimal', icon: '✨', description: 'Typography-focused' },
+];
+
 const timelineOptions: LayoutOption<TimelineLayout>[] = [
   { value: 'alternating', label: 'Classic', icon: '📜', description: 'Alternating left/right' },
   { value: 'horizontal', label: 'Film Strip', icon: '🎞️', description: 'Horizontal scroll' },
@@ -66,6 +72,23 @@ const wishOptions: LayoutOption<WishDisplayMode>[] = [
   { value: 'cards', label: 'Cards', icon: '💌', description: '2-column grid' },
   { value: 'wall', label: 'Wall', icon: '🧩', description: 'Masonry wall' },
 ];
+
+export function HeroLayoutPicker({
+  value,
+  onChange,
+}: {
+  value: HeroStyle;
+  onChange: (v: HeroStyle) => void;
+}) {
+  return (
+    <LayoutPicker
+      label="Hero Layout"
+      value={value}
+      onChange={onChange}
+      options={heroOptions}
+    />
+  );
+}
 
 export function TimelineLayoutPicker({
   value,

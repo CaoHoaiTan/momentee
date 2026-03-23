@@ -1,10 +1,12 @@
-import type { TimelineLayout, GalleryMode, WishDisplayMode, ThemeConfig } from './themes';
+import type { HeroStyle, TimelineLayout, GalleryMode, WishDisplayMode, ThemeConfig } from './themes';
 
 export interface LayoutConfig {
   sectionOrder?: string[];
+  heroStyle?: HeroStyle;
   timelineLayout?: TimelineLayout;
   galleryMode?: GalleryMode;
   wishDisplay?: WishDisplayMode;
+  customCss?: string;
 }
 
 export function parseLayoutConfig(raw: string | null | undefined): LayoutConfig {
@@ -23,11 +25,13 @@ export function serializeLayoutConfig(config: LayoutConfig): string {
 export function mergeWithThemeDefaults(
   config: LayoutConfig,
   theme: ThemeConfig,
-): Required<Pick<LayoutConfig, 'timelineLayout' | 'galleryMode' | 'wishDisplay'>> & Pick<LayoutConfig, 'sectionOrder'> {
+): Required<Pick<LayoutConfig, 'heroStyle' | 'timelineLayout' | 'galleryMode' | 'wishDisplay'>> & Pick<LayoutConfig, 'sectionOrder' | 'customCss'> {
   return {
     sectionOrder: config.sectionOrder,
+    heroStyle: config.heroStyle ?? theme.layout.hero,
     timelineLayout: config.timelineLayout ?? theme.layout.timeline,
     galleryMode: config.galleryMode ?? theme.layout.gallery,
     wishDisplay: config.wishDisplay ?? theme.layout.wishDisplay,
+    customCss: config.customCss,
   };
 }

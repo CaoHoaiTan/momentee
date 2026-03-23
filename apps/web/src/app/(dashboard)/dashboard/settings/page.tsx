@@ -13,11 +13,12 @@ import { Card } from '../../../../components/ui/card';
 import { LoadingSpinner } from '../../../../components/ui/loading-spinner';
 import { ThemeSelector } from '../../../../components/ui/theme-selector';
 import { ConfirmModal } from '../../../../components/ui/confirm-modal';
-import { TimelineLayoutPicker, GalleryModePicker, WishDisplayPicker } from '../../../../components/ui/layout-picker';
+import { HeroLayoutPicker, TimelineLayoutPicker, GalleryModePicker, WishDisplayPicker } from '../../../../components/ui/layout-picker';
 import { SectionReorder, DEFAULT_SECTION_ORDER } from '../../../../components/ui/section-reorder';
+import { CssEditor } from '../../../../components/ui/css-editor';
 import { parseLayoutConfig, serializeLayoutConfig } from '../../../../lib/layout-config';
 import { getTheme } from '../../../../lib/themes';
-import type { TimelineLayout, GalleryMode, WishDisplayMode } from '../../../../lib/themes';
+import type { HeroStyle, TimelineLayout, GalleryMode, WishDisplayMode } from '../../../../lib/themes';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -36,9 +37,11 @@ export default function SettingsPage() {
 
   // Layout config state
   const [sectionOrder, setSectionOrder] = useState<string[]>(DEFAULT_SECTION_ORDER);
+  const [heroStyle, setHeroStyle] = useState<HeroStyle>('cinematic');
   const [timelineLayout, setTimelineLayout] = useState<TimelineLayout>('alternating');
   const [galleryMode, setGalleryMode] = useState<GalleryMode>('grid');
   const [wishDisplay, setWishDisplay] = useState<WishDisplayMode>('cards');
+  const [customCss, setCustomCss] = useState('');
 
   const [updateCouple, { loading: updating }] = useMutation(UPDATE_COUPLE, {
     refetchQueries: [{ query: GET_MY_COUPLE }],
@@ -65,9 +68,11 @@ export default function SettingsPage() {
       const config = parseLayoutConfig(couple.layoutConfig);
       const themeDefaults = getTheme(couple.theme);
       if (config.sectionOrder?.length) setSectionOrder(config.sectionOrder);
+      setHeroStyle(config.heroStyle ?? themeDefaults.layout.hero);
       setTimelineLayout(config.timelineLayout ?? themeDefaults.layout.timeline);
       setGalleryMode(config.galleryMode ?? themeDefaults.layout.gallery);
       setWishDisplay(config.wishDisplay ?? themeDefaults.layout.wishDisplay);
+      setCustomCss(config.customCss ?? '');
     }
   }, [couple]);
 
@@ -76,6 +81,7 @@ export default function SettingsPage() {
     if (!couple) return;
     const config = parseLayoutConfig(couple.layoutConfig);
     const themeDefaults = getTheme(theme);
+    if (!config.heroStyle) setHeroStyle(themeDefaults.layout.hero);
     if (!config.timelineLayout) setTimelineLayout(themeDefaults.layout.timeline);
     if (!config.galleryMode) setGalleryMode(themeDefaults.layout.gallery);
     if (!config.wishDisplay) setWishDisplay(themeDefaults.layout.wishDisplay);
@@ -97,9 +103,11 @@ export default function SettingsPage() {
     try {
       const layoutConfig = serializeLayoutConfig({
         sectionOrder,
+        heroStyle,
         timelineLayout,
         galleryMode,
         wishDisplay,
+        customCss: customCss || undefined,
       });
 
       await updateCouple({
@@ -206,6 +214,7 @@ export default function SettingsPage() {
           <div className="border-t border-gray-100 pt-6">
             <h3 className="mb-4 text-sm font-semibold text-gray-700">Section Styles</h3>
             <div className="space-y-5">
+              <HeroLayoutPicker value={heroStyle} onChange={setHeroStyle} />
               <TimelineLayoutPicker value={timelineLayout} onChange={setTimelineLayout} />
               <GalleryModePicker value={galleryMode} onChange={setGalleryMode} />
               <WishDisplayPicker value={wishDisplay} onChange={setWishDisplay} />
@@ -213,6 +222,13 @@ export default function SettingsPage() {
           </div>
         </div>
       </Card>
+
+      {/* Custom CSS (Premium) */}
+      {couple.plan !== 'free' && (
+        <Card>
+          <CssEditor value={customCss} onChange={setCustomCss} />
+        </Card>
+      )}
 
       {/* Privacy */}
       <Card>

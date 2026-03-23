@@ -1,3 +1,4 @@
+export type HeroStyle = 'cinematic' | 'split' | 'minimal';
 export type TimelineLayout = 'alternating' | 'horizontal' | 'immersive';
 export type GalleryMode = 'grid' | 'masonry' | 'polaroid';
 export type WishDisplayMode = 'cards' | 'wall';
@@ -25,6 +26,7 @@ export interface ThemeConfig {
   divider: 'wave' | 'diagonal' | 'thin-line' | 'glitch';
   isDark: boolean;
   layout: {
+    hero: HeroStyle;
     timeline: TimelineLayout;
     gallery: GalleryMode;
     wishDisplay: WishDisplayMode;
@@ -55,6 +57,7 @@ export const themes: Record<string, ThemeConfig> = {
     divider: 'wave',
     isDark: false,
     layout: {
+      hero: 'cinematic',
       timeline: 'alternating',
       gallery: 'grid',
       wishDisplay: 'cards',
@@ -83,6 +86,7 @@ export const themes: Record<string, ThemeConfig> = {
     divider: 'diagonal',
     isDark: true,
     layout: {
+      hero: 'cinematic',
       timeline: 'immersive',
       gallery: 'masonry',
       wishDisplay: 'wall',
@@ -111,6 +115,7 @@ export const themes: Record<string, ThemeConfig> = {
     divider: 'thin-line',
     isDark: false,
     layout: {
+      hero: 'minimal',
       timeline: 'alternating',
       gallery: 'polaroid',
       wishDisplay: 'cards',
@@ -139,6 +144,7 @@ export const themes: Record<string, ThemeConfig> = {
     divider: 'glitch',
     isDark: true,
     layout: {
+      hero: 'split',
       timeline: 'horizontal',
       gallery: 'masonry',
       wishDisplay: 'wall',
@@ -167,6 +173,7 @@ export const themes: Record<string, ThemeConfig> = {
     divider: 'wave',
     isDark: false,
     layout: {
+      hero: 'cinematic',
       timeline: 'alternating',
       gallery: 'grid',
       wishDisplay: 'cards',
@@ -195,6 +202,7 @@ export const themes: Record<string, ThemeConfig> = {
     divider: 'thin-line',
     isDark: false,
     layout: {
+      hero: 'cinematic',
       timeline: 'horizontal',
       gallery: 'polaroid',
       wishDisplay: 'cards',
@@ -223,6 +231,7 @@ export const themes: Record<string, ThemeConfig> = {
     divider: 'wave',
     isDark: false,
     layout: {
+      hero: 'cinematic',
       timeline: 'immersive',
       gallery: 'masonry',
       wishDisplay: 'wall',
@@ -251,6 +260,7 @@ export const themes: Record<string, ThemeConfig> = {
     divider: 'diagonal',
     isDark: false,
     layout: {
+      hero: 'minimal',
       timeline: 'immersive',
       gallery: 'masonry',
       wishDisplay: 'cards',
@@ -279,6 +289,7 @@ export const themes: Record<string, ThemeConfig> = {
     divider: 'wave',
     isDark: false,
     layout: {
+      hero: 'split',
       timeline: 'horizontal',
       gallery: 'grid',
       wishDisplay: 'wall',
@@ -307,6 +318,7 @@ export const themes: Record<string, ThemeConfig> = {
     divider: 'thin-line',
     isDark: false,
     layout: {
+      hero: 'cinematic',
       timeline: 'alternating',
       gallery: 'polaroid',
       wishDisplay: 'cards',
@@ -335,6 +347,7 @@ export const themes: Record<string, ThemeConfig> = {
     divider: 'wave',
     isDark: false,
     layout: {
+      hero: 'cinematic',
       timeline: 'alternating',
       gallery: 'masonry',
       wishDisplay: 'wall',
@@ -363,6 +376,7 @@ export const themes: Record<string, ThemeConfig> = {
     divider: 'diagonal',
     isDark: true,
     layout: {
+      hero: 'minimal',
       timeline: 'immersive',
       gallery: 'grid',
       wishDisplay: 'cards',

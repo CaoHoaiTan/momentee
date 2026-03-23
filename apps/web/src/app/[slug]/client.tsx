@@ -147,6 +147,7 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
           partner2Avatar={couple.partner2?.avatar ?? null}
           anniversary={couple.anniversary}
           weddingDate={couple.weddingDate}
+          heroStyle={layout.heroStyle}
         />
         <div className="flex items-center justify-between">
           <QrShare slug={couple.slug} size={120} />
@@ -322,7 +323,16 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
       <Particles type={theme.particles} />
       <MobileFab onWishClick={scrollToWishes} />
 
-      <div className="relative z-10 mx-auto max-w-4xl space-y-8 px-4 py-8">
+      {/* Custom CSS injection (scoped, sanitized) */}
+      {layout.customCss && (
+        <style dangerouslySetInnerHTML={{
+          __html: layout.customCss
+            .replace(/@import\b/gi, '/* blocked */')
+            .replace(/url\s*\(/gi, '/* blocked */('),
+        }} />
+      )}
+
+      <div className="couple-page relative z-10 mx-auto max-w-4xl space-y-8 px-4 py-8">
         {sectionOrder.map((sectionId) => {
           const render = sectionRenderers[sectionId];
           return render ? render() : null;

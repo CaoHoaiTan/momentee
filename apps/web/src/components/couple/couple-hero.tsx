@@ -5,6 +5,9 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { useTheme } from '../../lib/theme-provider';
 import { Countdown } from './countdown';
 import { EasterEgg } from './easter-egg';
+import type { HeroStyle } from '../../lib/themes';
+import { HeroSplit } from './hero-split';
+import { HeroMinimal } from './hero-minimal';
 
 interface CoupleHeroProps {
   displayName: string;
@@ -16,6 +19,7 @@ interface CoupleHeroProps {
   partner2Avatar: string | null;
   anniversary?: string | null;
   weddingDate?: string | null;
+  heroStyle?: HeroStyle;
 }
 
 function AvatarRing({
@@ -62,6 +66,7 @@ export function CoupleHero({
   partner2Avatar,
   anniversary,
   weddingDate,
+  heroStyle = 'cinematic',
 }: CoupleHeroProps) {
   const theme = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -70,6 +75,11 @@ export function CoupleHero({
     offset: ['start start', 'end start'],
   });
   const parallaxY = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
+
+  const sharedProps = { displayName, coverPhoto, bio, partner1Name, partner1Avatar, partner2Name, partner2Avatar, anniversary, weddingDate };
+
+  if (heroStyle === 'split') return <HeroSplit {...sharedProps} />;
+  if (heroStyle === 'minimal') return <HeroMinimal {...sharedProps} />;
 
   const countdownDate = weddingDate || anniversary;
 
