@@ -1,5 +1,15 @@
 import type { Metadata } from 'next';
-import { Outfit, Sora, Caveat } from 'next/font/google';
+import {
+  Outfit,
+  Sora,
+  Caveat,
+  Playfair_Display,
+  Poppins,
+  Cormorant_Garamond,
+  Jost,
+  Unbounded,
+  Inter_Tight,
+} from 'next/font/google';
 import './globals.css';
 import { ApolloProvider } from '../lib/apollo-provider';
 import { AuthProvider } from '../lib/auth-context';
@@ -16,6 +26,38 @@ const sora = Sora({
 
 const caveat = Caveat({
   variable: '--font-caveat',
+  subsets: ['latin'],
+});
+
+const playfairDisplay = Playfair_Display({
+  variable: '--font-playfair-display',
+  subsets: ['latin'],
+});
+
+const poppins = Poppins({
+  variable: '--font-poppins',
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+});
+
+const cormorantGaramond = Cormorant_Garamond({
+  variable: '--font-cormorant-garamond',
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+});
+
+const jost = Jost({
+  variable: '--font-jost',
+  subsets: ['latin'],
+});
+
+const unbounded = Unbounded({
+  variable: '--font-unbounded',
+  subsets: ['latin'],
+});
+
+const interTight = Inter_Tight({
+  variable: '--font-inter-tight',
   subsets: ['latin'],
 });
 
@@ -37,7 +79,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${outfit.variable} ${sora.variable} ${caveat.variable} h-full antialiased`}
+      className={`${outfit.variable} ${sora.variable} ${caveat.variable} ${playfairDisplay.variable} ${poppins.variable} ${cormorantGaramond.variable} ${jost.variable} ${unbounded.variable} ${interTight.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">
         <ApolloProvider>

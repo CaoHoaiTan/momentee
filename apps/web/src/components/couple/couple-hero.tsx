@@ -1,6 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useRef } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { useTheme } from '../../lib/theme-provider';
+import { Countdown } from './countdown';
 
 interface CoupleHeroProps {
   displayName: string;
@@ -10,6 +13,42 @@ interface CoupleHeroProps {
   partner1Avatar: string | null;
   partner2Name: string | null;
   partner2Avatar: string | null;
+  anniversary?: string | null;
+  weddingDate?: string | null;
+}
+
+function AvatarRing({
+  avatar,
+  name,
+  primary,
+  secondary,
+}: {
+  avatar: string | null;
+  name: string;
+  primary: string;
+  secondary: string;
+}) {
+  return (
+    <div className="relative">
+      <div
+        className="animate-rotate-gradient absolute -inset-1 rounded-full"
+        style={{
+          background: `conic-gradient(from var(--gradient-angle), ${primary}, ${secondary}, ${primary})`,
+        }}
+      />
+      <div className="relative flex h-20 w-20 items-center justify-center rounded-full border-2 border-white/30 bg-white/20 text-2xl font-bold sm:h-24 sm:w-24">
+        {avatar ? (
+          <img
+            src={avatar}
+            alt={name}
+            className="h-full w-full rounded-full object-cover"
+          />
+        ) : (
+          <span className="text-white">{name.charAt(0).toUpperCase()}</span>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export function CoupleHero({
@@ -20,50 +59,99 @@ export function CoupleHero({
   partner1Avatar,
   partner2Name,
   partner2Avatar,
+  anniversary,
+  weddingDate,
 }: CoupleHeroProps) {
+  const theme = useTheme();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ['start start', 'end start'],
+  });
+  const parallaxY = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
+
+  const countdownDate = weddingDate || anniversary;
+
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--color-coral)] to-[var(--color-orange)]">
+    <div
+      ref={containerRef}
+      className="relative overflow-hidden rounded-3xl"
+      style={{
+        background: `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary})`,
+      }}
+    >
       {coverPhoto && (
-        <img
+        <motion.img
           src={coverPhoto}
           alt={displayName}
-          className="absolute inset-0 h-full w-full object-cover opacity-30"
+          className="absolute inset-0 h-[130%] w-full object-cover opacity-30"
+          style={{ y: parallaxY }}
         />
       )}
+
+      {theme.isDark && (
+        <div className="absolute inset-0 bg-black/30" />
+      )}
+
       <div className="relative px-6 py-16 text-center text-white sm:px-12 sm:py-24">
         {/* Avatars */}
-        <div className="mb-6 flex items-center justify-center gap-4">
-          <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-white/30 bg-white/20 text-2xl font-bold">
-            {partner1Avatar ? (
-              <img src={partner1Avatar} alt={partner1Name} className="h-full w-full rounded-full object-cover" />
-            ) : (
-              partner1Name.charAt(0).toUpperCase()
-            )}
-          </div>
-          <div className="text-3xl font-handwriting">&amp;</div>
+        <div className="mb-6 flex items-center justify-center gap-4 sm:gap-6">
+          <AvatarRing
+            avatar={partner1Avatar}
+            name={partner1Name}
+            primary={theme.colors.primary}
+            secondary={theme.colors.secondary}
+          />
+          <div className="text-3xl font-handwriting sm:text-4xl">&amp;</div>
           {partner2Name ? (
-            <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-white/30 bg-white/20 text-2xl font-bold">
-              {partner2Avatar ? (
-                <img src={partner2Avatar} alt={partner2Name} className="h-full w-full rounded-full object-cover" />
-              ) : (
-                partner2Name.charAt(0).toUpperCase()
-              )}
-            </div>
+            <AvatarRing
+              avatar={partner2Avatar}
+              name={partner2Name}
+              primary={theme.colors.primary}
+              secondary={theme.colors.secondary}
+            />
           ) : (
-            <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-white/30 bg-white/20 text-2xl">
-              ?
+            <div className="relative">
+              <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-white/30 bg-white/20 text-2xl sm:h-24 sm:w-24">
+                ?
+              </div>
             </div>
           )}
         </div>
 
-        <h1 className="font-display text-4xl font-bold sm:text-5xl">
+        <motion.h1
+          className="text-4xl font-bold sm:text-5xl"
+          style={{ fontFamily: 'var(--theme-font-display)' }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
           {displayName}
-        </h1>
+        </motion.h1>
 
         {bio && (
-          <p className="mx-auto mt-4 max-w-lg text-lg text-white/80">
+          <motion.p
+            className="mx-auto mt-4 max-w-lg text-lg text-white/80"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
             {bio}
-          </p>
+          </motion.p>
+        )}
+
+        {countdownDate && (
+          <motion.div
+            className="mt-8"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+          >
+            <Countdown
+              targetDate={countdownDate}
+              label={weddingDate ? 'Until the big day' : 'Together since'}
+            />
+          </motion.div>
         )}
       </div>
     </div>

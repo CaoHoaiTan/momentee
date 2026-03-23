@@ -74,15 +74,21 @@ export function Timeline({ milestones, isOwner = false, onEdit, onDelete }: Time
                   isRight ? 'md:ml-auto md:pl-10' : 'md:mr-auto md:pr-10 md:text-right'
                 }`}
               >
-                <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
-                  <p className="text-xs font-medium text-[var(--color-coral)]">
+                <div
+                  className="rounded-2xl border p-4 shadow-sm transition-shadow hover:shadow-md"
+                  style={{
+                    background: 'var(--theme-surface)',
+                    borderColor: 'var(--theme-border)',
+                  }}
+                >
+                  <p className="text-xs font-medium" style={{ color: 'var(--color-coral)' }}>
                     {formatDate(milestone.date)}
                   </p>
-                  <h3 className="mt-1 text-lg font-semibold text-gray-900">
+                  <h3 className="mt-1 text-lg font-semibold" style={{ color: 'var(--theme-text)' }}>
                     {milestone.title}
                   </h3>
                   {milestone.description && (
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className="mt-1 text-sm" style={{ color: 'var(--theme-text-muted)' }}>
                       {milestone.description}
                     </p>
                   )}

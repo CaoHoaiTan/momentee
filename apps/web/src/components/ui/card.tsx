@@ -9,7 +9,13 @@ interface CardProps {
 
 export function Card({ children, className = '' }: CardProps) {
   return (
-    <div className={`rounded-2xl bg-white shadow-sm border border-gray-100 p-6 ${className}`}>
+    <div
+      className={`rounded-2xl shadow-sm border p-6 ${className}`}
+      style={{
+        background: 'var(--theme-surface, #ffffff)',
+        borderColor: 'var(--theme-border, #f3f4f6)',
+      }}
+    >
       {children}
     </div>
   );

@@ -1,46 +1,102 @@
 'use client';
 
 import React from 'react';
-
-const themes = [
-  { name: 'coral', color: '#ff6b6b', label: 'Coral' },
-  { name: 'teal', color: '#06d6a0', label: 'Teal' },
-  { name: 'purple', color: '#7c5cfc', label: 'Purple' },
-  { name: 'gold', color: '#ffd166', label: 'Gold' },
-  { name: 'orange', color: '#ff8c42', label: 'Orange' },
-];
+import { themes, resolveThemeId, type ThemeConfig } from '../../lib/themes';
 
 interface ThemeSelectorProps {
   value: string;
   onChange: (theme: string) => void;
 }
 
+function ThemePreviewCard({
+  theme,
+  isSelected,
+  onClick,
+}: {
+  theme: ThemeConfig;
+  isSelected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`group relative flex flex-col overflow-hidden rounded-xl border-2 transition-all ${
+        isSelected ? 'scale-105 border-gray-900' : 'border-transparent hover:scale-[1.02]'
+      }`}
+      style={{ width: '100%' }}
+    >
+      {/* Mini preview */}
+      <div
+        className="flex flex-col items-center justify-center gap-1.5 px-3 py-4"
+        style={{ background: theme.colors.bg }}
+      >
+        {/* Color dots */}
+        <div className="flex gap-1">
+          <div
+            className="h-3 w-3 rounded-full"
+            style={{ background: theme.colors.primary }}
+          />
+          <div
+            className="h-3 w-3 rounded-full"
+            style={{ background: theme.colors.secondary }}
+          />
+          <div
+            className="h-3 w-3 rounded-full"
+            style={{ background: theme.colors.accent }}
+          />
+        </div>
+
+        {/* Mini text preview */}
+        <div
+          className="h-1.5 w-12 rounded-full"
+          style={{ background: theme.colors.text, opacity: 0.6 }}
+        />
+        <div
+          className="h-1 w-8 rounded-full"
+          style={{ background: theme.colors.textMuted, opacity: 0.4 }}
+        />
+      </div>
+
+      {/* Label */}
+      <div className="border-t border-gray-100 px-2 py-1.5 text-center">
+        <p className="text-xs font-medium text-gray-700">{theme.name}</p>
+      </div>
+
+      {/* Checkmark */}
+      {isSelected && (
+        <div className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-gray-900">
+          <svg
+            className="h-3 w-3 text-white"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={3}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+      )}
+    </button>
+  );
+}
+
 export function ThemeSelector({ value, onChange }: ThemeSelectorProps) {
+  const resolvedId = resolveThemeId(value);
+
   return (
     <div>
       <label className="mb-2 block text-sm font-medium text-gray-700">
-        Theme Color
+        Page Theme
       </label>
-      <div className="flex gap-3">
-        {themes.map((theme) => (
-          <button
-            key={theme.name}
-            type="button"
-            onClick={() => onChange(theme.name)}
-            className={`flex h-12 w-12 items-center justify-center rounded-xl border-2 transition-all ${
-              value === theme.name
-                ? 'border-gray-900 scale-110'
-                : 'border-transparent hover:scale-105'
-            }`}
-            style={{ backgroundColor: theme.color }}
-            title={theme.label}
-          >
-            {value === theme.name && (
-              <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            )}
-          </button>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {Object.values(themes).map((theme) => (
+          <ThemePreviewCard
+            key={theme.id}
+            theme={theme}
+            isSelected={resolvedId === theme.id}
+            onClick={() => onChange(theme.id)}
+          />
         ))}
       </div>
     </div>

@@ -34,7 +34,13 @@ function relativeTime(dateStr: string): string {
 
 export function WishCard({ wish, onDelete, isOwner = false }: WishCardProps) {
   return (
-    <div className="group relative rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100 transition-shadow hover:shadow-md">
+    <div
+      className="group relative rounded-2xl p-5 shadow-sm ring-1 transition-shadow hover:shadow-md"
+      style={{
+        background: 'var(--theme-surface)',
+        '--tw-ring-color': 'var(--theme-border)',
+      } as React.CSSProperties}
+    >
       {isOwner && onDelete && (
         <button
           onClick={() => onDelete(wish.id)}
@@ -49,13 +55,13 @@ export function WishCard({ wish, onDelete, isOwner = false }: WishCardProps) {
       <div className="flex items-start gap-3">
         {wish.emoji && <span className="text-2xl">{wish.emoji}</span>}
         <div className="flex-1">
-          <p className="text-sm text-gray-700">{wish.message}</p>
+          <p className="text-sm" style={{ color: 'var(--theme-text)' }}>{wish.message}</p>
           <div className="mt-2 flex items-center gap-2">
-            <span className="text-xs font-medium text-gray-500">
+            <span className="text-xs font-medium" style={{ color: 'var(--theme-text-muted)' }}>
               {wish.isAnonymous ? 'Anonymous' : wish.authorName}
             </span>
-            <span className="text-xs text-gray-300">·</span>
-            <span className="text-xs text-gray-400">{relativeTime(wish.createdAt)}</span>
+            <span className="text-xs" style={{ opacity: 0.3, color: 'var(--theme-text-muted)' }}>·</span>
+            <span className="text-xs" style={{ opacity: 0.6, color: 'var(--theme-text-muted)' }}>{relativeTime(wish.createdAt)}</span>
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface CoupleStatsProps {
   daysTogether: number;
@@ -9,11 +9,52 @@ interface CoupleStatsProps {
   viewCount: number;
 }
 
+function AnimatedNumber({ value }: { value: number }) {
+  const [display, setDisplay] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const hasAnimated = useRef(false);
+
+  useEffect(() => {
+    if (hasAnimated.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated.current) {
+          hasAnimated.current = true;
+          const duration = 1200;
+          const start = performance.now();
+          const step = (now: number) => {
+            const progress = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setDisplay(Math.round(eased * value));
+            if (progress < 1) requestAnimationFrame(step);
+          };
+          requestAnimationFrame(step);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.3 },
+    );
+
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [value]);
+
+  return <span ref={ref}>{display.toLocaleString()}</span>;
+}
+
 function Stat({ label, value }: { label: string; value: number }) {
   return (
     <div className="text-center">
-      <p className="text-3xl font-bold text-gray-900">{value.toLocaleString()}</p>
-      <p className="mt-1 text-sm text-gray-500">{label}</p>
+      <p
+        className="text-3xl font-bold"
+        style={{ color: 'var(--theme-text)' }}
+      >
+        <AnimatedNumber value={value} />
+      </p>
+      <p className="mt-1 text-sm" style={{ color: 'var(--theme-text-muted)' }}>
+        {label}
+      </p>
     </div>
   );
 }

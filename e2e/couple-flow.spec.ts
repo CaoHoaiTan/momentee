@@ -112,6 +112,7 @@ test.describe('GraphQL API — Couple operations', () => {
     expect(couple.slug).toContain('e2e-couple');
     expect(couple.inviteCode).toBeTruthy();
     expect(couple.bio).toBe('Test couple bio');
+    // Legacy 'coral' maps to 'sunset-coral' via resolveThemeId
     expect(couple.theme).toBe('coral');
     expect(couple.isPublic).toBe(true);
 
@@ -420,7 +421,7 @@ test.describe('Frontend — Settings', () => {
     );
 
     // Theme selector
-    await expect(page.getByText('Theme Color')).toBeVisible();
+    await expect(page.getByText('Page Theme')).toBeVisible();
 
     // Privacy toggle
     await expect(page.getByText('Public Page')).toBeVisible();
@@ -453,8 +454,8 @@ test.describe('Frontend — Settings', () => {
     await nameInput.clear();
     await nameInput.fill(`Renamed Couple ${uniqueSuffix}`);
 
-    // Change theme to teal
-    await page.locator('button[title="Teal"]').click();
+    // Change theme to midnight-garden
+    await page.getByText('Midnight Garden').click();
 
     // Save
     await page.getByRole('button', { name: 'Save Settings' }).click();
