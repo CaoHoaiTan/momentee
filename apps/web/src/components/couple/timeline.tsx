@@ -2,6 +2,9 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import type { TimelineLayout } from '../../lib/themes';
+import { TimelineHorizontal } from './timeline-horizontal';
+import { TimelineImmersive } from './timeline-immersive';
 
 interface Milestone {
   id: string;
@@ -15,6 +18,7 @@ interface Milestone {
 
 interface TimelineProps {
   milestones: Milestone[];
+  layout?: TimelineLayout;
   isOwner?: boolean;
   onEdit?: (milestone: Milestone) => void;
   onDelete?: (id: string) => void;
@@ -29,19 +33,25 @@ function formatDate(dateStr: string) {
   });
 }
 
-export function Timeline({ milestones, isOwner = false, onEdit, onDelete }: TimelineProps) {
+export function Timeline({ milestones, layout = 'alternating', isOwner = false, onEdit, onDelete }: TimelineProps) {
   if (milestones.length === 0) {
     return (
       <div className="py-12 text-center">
         <div className="mx-auto mb-4 text-5xl">📅</div>
-        <p className="text-lg font-medium text-gray-500">No milestones yet</p>
-        <p className="mt-1 text-sm text-gray-400">
+        <p className="text-lg font-medium" style={{ color: 'var(--theme-text-muted)' }}>No milestones yet</p>
+        <p className="mt-1 text-sm" style={{ color: 'var(--theme-text-muted)', opacity: 0.7 }}>
           {isOwner
             ? 'Add your first milestone to start building your love story timeline.'
             : 'This couple hasn\'t added any milestones yet.'}
         </p>
       </div>
     );
+  }
+
+  // For non-owner views, delegate to layout variants
+  if (!isOwner) {
+    if (layout === 'horizontal') return <TimelineHorizontal milestones={milestones} />;
+    if (layout === 'immersive') return <TimelineImmersive milestones={milestones} />;
   }
 
   return (

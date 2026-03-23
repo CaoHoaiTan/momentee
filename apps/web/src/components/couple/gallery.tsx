@@ -2,6 +2,9 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import type { GalleryMode } from '../../lib/themes';
+import { GalleryMasonry } from './gallery-masonry';
+import { GalleryPolaroid } from './gallery-polaroid';
 
 interface MediaItem {
   url: string;
@@ -15,11 +18,12 @@ interface PostData {
 
 interface GalleryProps {
   posts: PostData[];
+  mode?: GalleryMode;
 }
 
 const MAX_VISIBLE = 12;
 
-export function Gallery({ posts }: GalleryProps) {
+export function Gallery({ posts, mode = 'grid' }: GalleryProps) {
   const images: MediaItem[] = posts.flatMap((post) =>
     post.media.map((m) => ({ url: m.url, caption: post.caption })),
   );
@@ -52,32 +56,45 @@ export function Gallery({ posts }: GalleryProps) {
   const visible = images.slice(0, MAX_VISIBLE);
   const hasMore = images.length > MAX_VISIBLE;
 
+  const openLightbox = (index: number) => setLightboxIndex(index);
+
   return (
     <>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {visible.map((img, i) => (
-          <button
-            key={i}
-            onClick={() => setLightboxIndex(i)}
-            className="group relative aspect-square overflow-hidden rounded-xl"
-          >
-            <img
-              src={img.url}
-              alt={img.caption ?? ''}
-              loading="lazy"
-              className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
-            />
-            {i === MAX_VISIBLE - 1 && hasMore && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                <span className="text-lg font-bold text-white">
-                  +{images.length - MAX_VISIBLE} more
-                </span>
-              </div>
-            )}
-          </button>
-        ))}
-      </div>
+      {mode === 'masonry' && (
+        <GalleryMasonry images={visible} onImageClick={openLightbox} />
+      )}
 
+      {mode === 'polaroid' && (
+        <GalleryPolaroid images={visible} onImageClick={openLightbox} />
+      )}
+
+      {mode === 'grid' && (
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {visible.map((img, i) => (
+            <button
+              key={i}
+              onClick={() => openLightbox(i)}
+              className="group relative aspect-square overflow-hidden rounded-xl"
+            >
+              <img
+                src={img.url}
+                alt={img.caption ?? ''}
+                loading="lazy"
+                className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+              />
+              {i === MAX_VISIBLE - 1 && hasMore && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                  <span className="text-lg font-bold text-white">
+                    +{images.length - MAX_VISIBLE} more
+                  </span>
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Shared lightbox */}
       <AnimatePresence>
         {lightboxIndex !== null && (
           <motion.div
@@ -87,7 +104,6 @@ export function Gallery({ posts }: GalleryProps) {
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
             onClick={closeLightbox}
           >
-            {/* Close button */}
             <button
               onClick={closeLightbox}
               className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
@@ -97,7 +113,6 @@ export function Gallery({ posts }: GalleryProps) {
               </svg>
             </button>
 
-            {/* Previous */}
             {lightboxIndex > 0 && (
               <button
                 onClick={(e) => { e.stopPropagation(); goPrev(); }}
@@ -109,7 +124,6 @@ export function Gallery({ posts }: GalleryProps) {
               </button>
             )}
 
-            {/* Next */}
             {lightboxIndex < images.length - 1 && (
               <button
                 onClick={(e) => { e.stopPropagation(); goNext(); }}
@@ -121,7 +135,6 @@ export function Gallery({ posts }: GalleryProps) {
               </button>
             )}
 
-            {/* Image */}
             <motion.div
               key={lightboxIndex}
               initial={{ scale: 0.9, opacity: 0 }}

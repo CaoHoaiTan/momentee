@@ -1,3 +1,8 @@
+export type TimelineLayout = 'alternating' | 'horizontal' | 'immersive';
+export type GalleryMode = 'grid' | 'masonry' | 'polaroid';
+export type WishDisplayMode = 'cards' | 'wall';
+export type CardStyle = 'elevated' | 'glass' | 'outlined' | 'neon';
+
 export interface ThemeConfig {
   id: string;
   name: string;
@@ -19,6 +24,12 @@ export interface ThemeConfig {
   particles: 'hearts' | 'stars' | 'shapes' | 'none';
   divider: 'wave' | 'diagonal' | 'thin-line' | 'glitch';
   isDark: boolean;
+  layout: {
+    timeline: TimelineLayout;
+    gallery: GalleryMode;
+    wishDisplay: WishDisplayMode;
+    cardStyle: CardStyle;
+  };
 }
 
 export const themes: Record<string, ThemeConfig> = {
@@ -43,6 +54,12 @@ export const themes: Record<string, ThemeConfig> = {
     particles: 'hearts',
     divider: 'wave',
     isDark: false,
+    layout: {
+      timeline: 'alternating',
+      gallery: 'grid',
+      wishDisplay: 'cards',
+      cardStyle: 'elevated',
+    },
   },
   'midnight-garden': {
     id: 'midnight-garden',
@@ -65,6 +82,12 @@ export const themes: Record<string, ThemeConfig> = {
     particles: 'stars',
     divider: 'diagonal',
     isDark: true,
+    layout: {
+      timeline: 'immersive',
+      gallery: 'masonry',
+      wishDisplay: 'wall',
+      cardStyle: 'glass',
+    },
   },
   'minimal-luxe': {
     id: 'minimal-luxe',
@@ -87,6 +110,12 @@ export const themes: Record<string, ThemeConfig> = {
     particles: 'none',
     divider: 'thin-line',
     isDark: false,
+    layout: {
+      timeline: 'alternating',
+      gallery: 'polaroid',
+      wishDisplay: 'cards',
+      cardStyle: 'outlined',
+    },
   },
   'neon-love': {
     id: 'neon-love',
@@ -109,6 +138,12 @@ export const themes: Record<string, ThemeConfig> = {
     particles: 'shapes',
     divider: 'glitch',
     isDark: true,
+    layout: {
+      timeline: 'horizontal',
+      gallery: 'masonry',
+      wishDisplay: 'wall',
+      cardStyle: 'neon',
+    },
   },
 };
 

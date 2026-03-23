@@ -15,6 +15,7 @@ import { Gallery } from '../../components/couple/gallery';
 import { WishForm } from '../../components/couple/wish-form';
 import { WishCard } from '../../components/couple/wish-card';
 import type { WishData } from '../../components/couple/wish-card';
+import { WishWall } from '../../components/couple/wish-wall';
 import { CoupleHero } from '../../components/couple/couple-hero';
 import { CoupleStats } from '../../components/couple/couple-stats';
 import { ShareButton } from '../../components/couple/share-button';
@@ -25,6 +26,8 @@ import { resolveThemeId, getTheme } from '../../lib/themes';
 import { ScrollReveal } from '../../components/couple/scroll-reveal';
 import { SectionDivider } from '../../components/couple/section-divider';
 import { Particles } from '../../components/couple/particles';
+import { LoveMeter } from '../../components/couple/love-meter';
+import { EventCardEnhanced } from '../../components/couple/event-card-enhanced';
 
 interface Partner {
   id: string;
@@ -124,6 +127,7 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
 
   return (
     <ThemeProvider themeId={themeId}>
+      <LoveMeter />
       <Particles type={theme.particles} />
 
       <div className="relative z-10 mx-auto max-w-4xl space-y-8 px-4 py-8">
@@ -186,7 +190,10 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
               >
                 Our Timeline
               </h2>
-              <Timeline milestones={milestonesData!.milestones} />
+              <Timeline
+                milestones={milestonesData!.milestones}
+                layout={theme.layout.timeline}
+              />
             </Card>
           </ScrollReveal>
         )}
@@ -201,7 +208,10 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
               >
                 Our Gallery
               </h2>
-              <Gallery posts={postsData!.posts} />
+              <Gallery
+                posts={postsData!.posts}
+                mode={theme.layout.gallery}
+              />
             </Card>
           </ScrollReveal>
         )}
@@ -226,11 +236,15 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
               loading={creatingWish}
             />
             {(wishesData?.wishes?.length ?? 0) > 0 && (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {wishesData!.wishes.map((wish) => (
-                  <WishCard key={wish.id} wish={wish} />
-                ))}
-              </div>
+              theme.layout.wishDisplay === 'wall' ? (
+                <WishWall wishes={wishesData!.wishes} />
+              ) : (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {wishesData!.wishes.map((wish) => (
+                    <WishCard key={wish.id} wish={wish} />
+                  ))}
+                </div>
+              )
             )}
           </div>
         </ScrollReveal>
@@ -248,43 +262,17 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
               {eventsData!.events
                 .filter((e) => e.isPublic)
                 .map((event) => (
-                  <Card key={event.id}>
-                    <h3 className="text-lg font-semibold" style={{ color: 'var(--theme-text)' }}>
-                      {event.title}
-                    </h3>
-                    {event.description && (
-                      <p className="mt-1 text-sm" style={{ color: 'var(--theme-text-muted)' }}>
-                        {event.description}
-                      </p>
-                    )}
-                    <div className="mt-3 space-y-1 text-sm" style={{ color: 'var(--theme-text-muted)' }}>
-                      <p>
-                        {new Date(event.startDate).toLocaleDateString('en-US', {
-                          month: 'long',
-                          day: 'numeric',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </p>
-                      {event.location && <p>{event.location}</p>}
-                      <p>
-                        {event.rsvps.filter((r) => r.status === 'ATTENDING' || r.status === 'attending').length} attending
-                        {event.maxGuests ? ` / ${event.maxGuests} max` : ''}
-                      </p>
-                    </div>
-                    <div className="mt-4">
-                      <RsvpForm
-                        onSubmit={async (data) => {
-                          await createRsvp({
-                            variables: { eventId: event.id, input: data },
-                            refetchQueries: [{ query: GET_EVENTS, variables: { coupleId: couple.id } }],
-                          });
-                        }}
-                        loading={creatingRsvp}
-                      />
-                    </div>
-                  </Card>
+                  <EventCardEnhanced key={event.id} event={event}>
+                    <RsvpForm
+                      onSubmit={async (data) => {
+                        await createRsvp({
+                          variables: { eventId: event.id, input: data },
+                          refetchQueries: [{ query: GET_EVENTS, variables: { coupleId: couple.id } }],
+                        });
+                      }}
+                      loading={creatingRsvp}
+                    />
+                  </EventCardEnhanced>
                 ))}
             </div>
           </ScrollReveal>
