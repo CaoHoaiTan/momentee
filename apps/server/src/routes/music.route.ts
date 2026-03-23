@@ -58,6 +58,7 @@ router.get('/api/music/search', musicLimiter, async (req, res) => {
 
   const q = String(req.query.q ?? '').slice(0, 200);
   const tags = String(req.query.tags ?? '').slice(0, 200);
+  console.log(`[Music API] Searching for: "${q}" with tags: "${tags}"`);
   const limit = Math.min(parseInt(String(req.query.limit ?? '20'), 10) || 20, 50);
 
   try {

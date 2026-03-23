@@ -34,6 +34,7 @@ export default function QuizPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [selectedQuiz, setSelectedQuiz] = useState<string | null>(null);
+  const [formError, setFormError] = useState('');
 
   // Quiz form state
   const [title, setTitle] = useState('');
@@ -102,18 +103,25 @@ export default function QuizPage() {
 
   const handleCreate = async () => {
     const validQuestions = questions.filter((q) => q.question.trim() && q.options.every((o) => o.trim()));
-    if (!title.trim() || validQuestions.length === 0) return;
-
-    await createQuiz({
-      variables: {
-        coupleId: couple.id,
-        input: { title: title.trim(), description: description.trim() || null, questions: validQuestions },
-      },
-    });
-    setFormOpen(false);
-    setTitle('');
-    setDescription('');
-    setQuestions([{ question: '', options: ['', '', '', ''], correctAnswer: 0 }]);
+    if (!title.trim() || validQuestions.length === 0) {
+      setFormError('Please fill in a title and at least one complete question with all options.');
+      return;
+    }
+    setFormError('');
+    try {
+      await createQuiz({
+        variables: {
+          coupleId: couple.id,
+          input: { title: title.trim(), description: description.trim() || null, questions: validQuestions },
+        },
+      });
+      setFormOpen(false);
+      setTitle('');
+      setDescription('');
+      setQuestions([{ question: '', options: ['', '', '', ''], correctAnswer: 0 }]);
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Failed to create quiz. Please try again.');
+    }
   };
 
   const handleDelete = async () => {
@@ -262,8 +270,11 @@ export default function QuizPage() {
                 <Button type="button" variant="outline" size="sm" onClick={addQuestion}>+ Add Question</Button>
               </div>
 
+              {formError && (
+                <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{formError}</p>
+              )}
               <div className="flex justify-end gap-3 pt-2">
-                <Button variant="ghost" size="sm" onClick={() => setFormOpen(false)} disabled={creating}>Cancel</Button>
+                <Button variant="ghost" size="sm" onClick={() => { setFormOpen(false); setFormError(''); }} disabled={creating}>Cancel</Button>
                 <Button variant="primary" size="sm" loading={creating} onClick={handleCreate}>Create Quiz</Button>
               </div>
             </div>

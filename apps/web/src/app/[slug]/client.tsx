@@ -393,7 +393,11 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
   }, [couple.slug, incrementView]);
 
   const defaultOrder = ['hero', 'stats', 'timeline', 'gallery', 'albums', 'wishes', 'quiz', 'events', 'gifts'];
-  const sectionOrder = layout.sectionOrder?.length ? layout.sectionOrder : defaultOrder;
+  const savedOrder = layout.sectionOrder?.length ? layout.sectionOrder : defaultOrder;
+  // Ensure any new sections not in saved config are appended at the end
+  const missingSections = defaultOrder.filter((s) => !savedOrder.includes(s));
+  const sectionOrder = [...savedOrder, ...missingSections];
+
 
   const sectionRenderers: Record<string, () => React.ReactNode> = {
     hero: () => (
