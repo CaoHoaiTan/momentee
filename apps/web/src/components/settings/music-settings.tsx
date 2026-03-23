@@ -27,7 +27,7 @@ export function MusicSettings({ plan, value, onChange }: MusicSettingsProps) {
   const [showPicker, setShowPicker] = useState(false);
   const [pickerStep, setPickerStep] = useState<PickerStep>('browse');
   const [selectedTrack, setSelectedTrack] = useState<JamendoTrack | null>(null);
-  const maxTracks = PLAN_TRACK_LIMITS[plan] ?? 0;
+  const maxTracks = PLAN_TRACK_LIMITS[plan?.toLowerCase()] ?? 0;
 
   if (maxTracks === 0) {
     return (
