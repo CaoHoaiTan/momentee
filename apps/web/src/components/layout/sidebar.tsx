@@ -97,17 +97,18 @@ const navItems: NavItem[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   return (
     <>
       {/* Mobile overlay */}
-      <button
-        className="fixed inset-0 z-30 bg-black/20 backdrop-blur-sm md:hidden"
-        style={{ display: collapsed ? 'none' : 'block' }}
-        onClick={() => setCollapsed(true)}
-        aria-label="Close sidebar"
-      />
+      {!collapsed && (
+        <button
+          className="fixed inset-0 z-30 bg-black/20 backdrop-blur-sm md:hidden"
+          onClick={() => setCollapsed(true)}
+          aria-label="Close sidebar"
+        />
+      )}
 
       {/* Mobile toggle */}
       <button

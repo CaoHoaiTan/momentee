@@ -47,23 +47,23 @@ export default function AdminPage() {
   const [deleteCoupleId, setDeleteCoupleId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!authLoading && (!isAuthenticated || user?.role !== 'admin')) {
+    if (!authLoading && (!isAuthenticated || user?.role !== 'ADMIN')) {
       router.push('/dashboard');
     }
   }, [authLoading, isAuthenticated, user, router]);
 
   const { data: statsData, loading: statsLoading } = useQuery<{ adminStats: AdminStats }>(GET_ADMIN_STATS, {
-    skip: user?.role !== 'admin',
+    skip: user?.role !== 'ADMIN',
   });
 
   const { data: usersData, loading: usersLoading } = useQuery<{ adminUsers: UserData[] }>(GET_ADMIN_USERS, {
     variables: { limit: 50, search: search || undefined },
-    skip: tab !== 'users' || user?.role !== 'admin',
+    skip: tab !== 'users' || user?.role !== 'ADMIN',
   });
 
   const { data: couplesData, loading: couplesLoading } = useQuery<{ adminCouples: CoupleData[] }>(GET_ADMIN_COUPLES, {
     variables: { limit: 50, search: search || undefined },
-    skip: tab !== 'couples' || user?.role !== 'admin',
+    skip: tab !== 'couples' || user?.role !== 'ADMIN',
   });
 
   const [deleteUser, { loading: deletingUser }] = useMutation(ADMIN_DELETE_USER, {
@@ -82,7 +82,7 @@ export default function AdminPage() {
     return <div className="flex min-h-screen items-center justify-center"><LoadingSpinner size="lg" /></div>;
   }
 
-  if (!isAuthenticated || user?.role !== 'admin') return null;
+  if (!isAuthenticated || user?.role !== 'ADMIN') return null;
 
   const stats = statsData?.adminStats;
   const users = usersData?.adminUsers ?? [];
@@ -161,7 +161,7 @@ export default function AdminPage() {
                       <td className="px-4 py-3 font-medium text-gray-900">{u.name}</td>
                       <td className="px-4 py-3 text-gray-500">{u.email}</td>
                       <td className="px-4 py-3">
-                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${u.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>
                           {u.role}
                         </span>
                       </td>
@@ -171,9 +171,9 @@ export default function AdminPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => updateRole({ variables: { id: u.id, role: u.role === 'admin' ? 'USER' : 'ADMIN' } })}
+                            onClick={() => updateRole({ variables: { id: u.id, role: u.role === 'ADMIN' ? 'USER' : 'ADMIN' } })}
                           >
-                            {u.role === 'admin' ? 'Demote' : 'Promote'}
+                            {u.role === 'ADMIN' ? 'Demote' : 'Promote'}
                           </Button>
                           <Button variant="ghost" size="sm" onClick={() => setDeleteUserId(u.id)} className="!text-red-500">
                             Delete

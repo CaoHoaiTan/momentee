@@ -56,7 +56,8 @@ body {
   color: var(--foreground);
 }
 
-html {
+/* scroll-behavior set via data attribute per Next.js recommendation */
+html[data-scroll-behavior="smooth"] {
   scroll-behavior: smooth;
 }
 

@@ -79,6 +79,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`${outfit.variable} ${sora.variable} ${caveat.variable} ${playfairDisplay.variable} ${poppins.variable} ${cormorantGaramond.variable} ${jost.variable} ${unbounded.variable} ${interTight.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">

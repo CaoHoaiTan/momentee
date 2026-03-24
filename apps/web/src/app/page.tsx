@@ -1,3 +1,6 @@
+'use client';
+
+import React, { useState } from 'react';
 import Link from 'next/link';
 
 const FEATURES = [
@@ -46,6 +49,8 @@ const STEPS = [
 ];
 
 export default function Home() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen overflow-hidden">
       {/* Navbar */}
@@ -57,15 +62,53 @@ export default function Home() {
             <Link href="/pricing" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">Pricing</Link>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/login" className="hidden text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors sm:block">Login</Link>
+            <Link href="/login" className="hidden text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors md:block">Login</Link>
             <Link
               href="/register"
-              className="rounded-full bg-[var(--color-coral)] px-5 py-2 text-sm font-semibold text-white transition-all hover:bg-[var(--color-coral-dark)] hover:shadow-lg hover:shadow-[var(--color-coral)]/25"
+              className="hidden rounded-full bg-[var(--color-coral)] px-5 py-2 text-sm font-semibold text-white transition-all hover:bg-[var(--color-coral-dark)] hover:shadow-lg hover:shadow-[var(--color-coral)]/25 md:block"
             >
               Get Started Free
             </Link>
+            {/* Mobile Hamburger */}
+            <button
+              className="flex items-center md:hidden"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              <svg className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                {mobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
           </div>
         </div>
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="border-t border-gray-100 bg-white px-4 py-4 md:hidden">
+            <div className="flex flex-col gap-3">
+              <Link href="/explore" className="text-sm font-medium text-gray-600 hover:text-[var(--color-coral)]" onClick={() => setMobileMenuOpen(false)}>
+                Explore
+              </Link>
+              <Link href="/pricing" className="text-sm font-medium text-gray-600 hover:text-[var(--color-coral)]" onClick={() => setMobileMenuOpen(false)}>
+                Pricing
+              </Link>
+              <hr className="border-gray-100" />
+              <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-[var(--color-coral)]" onClick={() => setMobileMenuOpen(false)}>
+                Login
+              </Link>
+              <Link
+                href="/register"
+                className="rounded-full bg-[var(--color-coral)] px-4 py-2 text-center text-sm font-semibold text-white"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Get Started Free
+              </Link>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero */}
@@ -115,14 +158,14 @@ export default function Home() {
             </div>
 
             {/* Social proof */}
-            <div className="mt-12 flex items-center justify-center gap-8 text-sm text-gray-400">
+            <div className="mt-12 flex flex-wrap items-center justify-center gap-4 text-sm text-gray-400">
               <div className="flex items-center gap-1.5">
                 <span className="text-lg">💕</span> 100% Free to start
               </div>
-              <div className="hidden items-center gap-1.5 sm:flex">
+              <div className="flex items-center gap-1.5">
                 <span className="text-lg">⚡</span> Setup in 60 seconds
               </div>
-              <div className="hidden items-center gap-1.5 sm:flex">
+              <div className="flex items-center gap-1.5">
                 <span className="text-lg">🔒</span> Private & secure
               </div>
             </div>

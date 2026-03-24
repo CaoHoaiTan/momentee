@@ -439,7 +439,11 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
         <ScrollReveal>
           <Card>
             <CoupleStats
-              daysTogether={couple.daysTogether}
+              daysTogether={
+                couple.anniversary
+                  ? Math.floor(Math.abs(Date.now() - new Date(couple.anniversary).getTime()) / (1000 * 60 * 60 * 24))
+                  : couple.daysTogether
+              }
               totalWishes={couple.totalWishes}
               totalPhotos={couple.totalPhotos}
               viewCount={couple.viewCount}
@@ -479,7 +483,7 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
       ) : null,
 
     gallery: () =>
-      (postsData?.posts?.length ?? 0) > 0 ? (
+      (postsData?.posts?.some((p) => p.media.length > 0) ?? false) ? (
         <ScrollReveal key="gallery">
           <Card>
             <h2 className="mb-6 text-center text-xl font-semibold" style={{ color: 'var(--theme-text)' }}>

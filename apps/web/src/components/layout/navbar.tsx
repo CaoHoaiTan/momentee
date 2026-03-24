@@ -7,7 +7,7 @@ import { Button } from '../ui/button';
 import { NotificationBell } from './notification-bell';
 
 export function Navbar() {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, loading: authLoading, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -30,7 +30,9 @@ export function Navbar() {
 
         {/* Auth Buttons / User Menu */}
         <div className="hidden items-center gap-3 md:flex">
-          {isAuthenticated ? (
+          {authLoading ? (
+            <div className="h-8 w-24 animate-pulse rounded-full bg-gray-100" />
+          ) : isAuthenticated ? (
             <div className="flex items-center gap-3">
               <NotificationBell />
               <Link href="/dashboard" className="flex items-center gap-2 rounded-full bg-gray-50 py-1.5 pl-1.5 pr-3 transition-colors hover:bg-gray-100">
