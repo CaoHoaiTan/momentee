@@ -40,6 +40,10 @@ export function MusicPlayer({ config, slug }: MusicPlayerProps) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ delay: 0.5, duration: 0.3 }}
       >
+        {/* Hidden Spotify embed for autoplay */}
+        {isSpotify && currentTrack.source === 'spotify' && (
+          <SpotifyEmbed spotifyId={currentTrack.spotifyId} hidden />
+        )}
         <motion.button
           onClick={() => {
             if (!isSpotify && needsInteraction) {
