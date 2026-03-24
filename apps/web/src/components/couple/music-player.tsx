@@ -9,9 +9,10 @@ import { SpotifyEmbed } from './spotify-embed';
 interface MusicPlayerProps {
   config: BackgroundMusicConfig;
   slug: string;
+  hasOwnerNav?: boolean;
 }
 
-export function MusicPlayer({ config, slug }: MusicPlayerProps) {
+export function MusicPlayer({ config, slug, hasOwnerNav = false }: MusicPlayerProps) {
   const [expanded, setExpanded] = useState(false);
   const {
     isPlaying,
@@ -31,11 +32,13 @@ export function MusicPlayer({ config, slug }: MusicPlayerProps) {
 
   const hasMultiple = config.tracks.length > 1;
 
+  const bottomClass = hasOwnerNav ? 'bottom-20' : 'bottom-4';
+
   // Collapsed state
   if (!expanded) {
     return (
       <motion.div
-        className="fixed bottom-4 left-4 z-30"
+        className={`fixed ${bottomClass} left-4 z-30`}
         initial={{ opacity: 0, scale: 0.8, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ delay: 0.5, duration: 0.3 }}
@@ -116,7 +119,7 @@ export function MusicPlayer({ config, slug }: MusicPlayerProps) {
   // Expanded state — different rendering for Spotify vs Upload
   return (
     <motion.div
-      className="fixed bottom-4 left-4 z-30 w-72 rounded-2xl shadow-xl"
+      className={`fixed ${bottomClass} left-4 z-30 w-72 rounded-2xl shadow-xl`}
       style={{
         background: 'var(--theme-surface)',
         border: '1px solid var(--theme-border)',

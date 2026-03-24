@@ -620,7 +620,7 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
         </Link>
       )}
       {musicConfig?.enabled && musicConfig.tracks.length > 0 && (
-        <MusicPlayer config={musicConfig} slug={couple.slug} />
+        <MusicPlayer config={musicConfig} slug={couple.slug} hasOwnerNav={!!isOwner} />
       )}
 
       {/* Custom CSS injection (scoped, sanitized) */}

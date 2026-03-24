@@ -231,7 +231,7 @@ function SpotifyTab({ onSelect }: { onSelect: (track: MusicTrack) => void }) {
 
       {/* Categories */}
       {!searchQuery && (
-        <div className="flex gap-2 overflow-x-auto border-b border-gray-100 px-6 py-3">
+        <div className="flex flex-nowrap gap-2 overflow-x-auto border-b border-gray-100 px-6 py-3 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden">
           {CATEGORIES.map((cat) => (
             <button
               key={cat.id}
