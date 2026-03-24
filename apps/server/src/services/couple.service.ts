@@ -1,6 +1,6 @@
 import { createId } from '@paralleldrive/cuid2';
 import { sql } from 'kysely';
-import { slugify, generateInviteCode } from '@momentee/shared';
+import { slugify, generateInviteCode, sanitizeCss } from '@momentee/shared';
 import { db } from '../config/database.js';
 import {
   NotFoundError,
@@ -133,7 +133,11 @@ export async function update(
   if (input.theme !== undefined) updateData.theme = input.theme;
   if (input.layoutConfig !== undefined) {
     try {
-      updateData.layout_config = JSON.parse(input.layoutConfig);
+      const parsed = JSON.parse(input.layoutConfig);
+      if (parsed && typeof parsed === 'object' && typeof parsed.customCss === 'string') {
+        parsed.customCss = sanitizeCss(parsed.customCss);
+      }
+      updateData.layout_config = parsed;
     } catch {
       updateData.layout_config = {};
     }

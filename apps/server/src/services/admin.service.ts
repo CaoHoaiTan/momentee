@@ -1,4 +1,3 @@
-import { sql } from 'kysely';
 import { db } from '../config/database.js';
 import { ForbiddenError } from '../utils/errors.js';
 import type { GQLContext } from '../graphql/context.js';
@@ -42,7 +41,7 @@ export async function getStats() {
 export async function listUsers(limit = 50, offset = 0, search?: string) {
   let query = db
     .selectFrom('users')
-    .selectAll()
+    .select(['id', 'email', 'name', 'avatar', 'role', 'plan', 'created_at'])
     .orderBy('created_at', 'desc')
     .limit(limit)
     .offset(offset);
@@ -95,7 +94,7 @@ export async function updateUserRole(userId: string, role: 'user' | 'admin') {
 
   return db
     .selectFrom('users')
-    .selectAll()
+    .select(['id', 'email', 'name', 'avatar', 'role', 'plan', 'created_at'])
     .where('id', '=', userId)
     .executeTakeFirstOrThrow();
 }
