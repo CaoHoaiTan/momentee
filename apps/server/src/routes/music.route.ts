@@ -102,7 +102,8 @@ router.get('/api/music/spotify/search', searchLimiter, async (req, res) => {
     });
 
     if (!response.ok) {
-      console.error(`[Spotify API] Search failed: ${response.status}`);
+      const errBody = await response.text().catch(() => '');
+      console.error(`[Spotify API] Search failed: ${response.status} ${errBody}`);
       res.status(502).json({ error: 'Music service unavailable' });
       return;
     }
@@ -200,7 +201,7 @@ router.post('/api/music/upload', uploadLimiter, async (req, res) => {
 
 // DELETE /api/music/upload/:publicId — delete uploaded audio from Cloudinary
 router.delete('/api/music/upload/:publicId(*)', uploadLimiter, async (req, res) => {
-  const publicId = req.params.publicId;
+  const publicId = Array.isArray(req.params.publicId) ? req.params.publicId.join('/') : req.params.publicId;
   if (!publicId) {
     res.status(400).json({ error: 'Missing publicId' });
     return;
