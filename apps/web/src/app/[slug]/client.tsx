@@ -110,7 +110,7 @@ function CopyButton({ text, label }: { text: string; label: string }) {
 
 function GiftCards({ accounts }: { accounts: { id: string; bankName: string | null; accountNumber: string | null; accountHolder: string | null; qrCode: string | null; note: string | null }[] }) {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div className={`grid grid-cols-1 gap-4 ${accounts.length === 1 ? 'mx-auto max-w-sm' : 'sm:grid-cols-2'}`}>
       {accounts.map((account, index) => (
         <motion.div
           key={account.id}

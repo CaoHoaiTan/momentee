@@ -142,7 +142,6 @@ function SpotifyTab({ onSelect }: { onSelect: (track: MusicTrack) => void }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [playingId, setPlayingId] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchTracks = useCallback(async (q: string) => {
@@ -192,29 +191,10 @@ function SpotifyTab({ onSelect }: { onSelect: (track: MusicTrack) => void }) {
   }, [searchQuery, fetchTracks]);
 
   const togglePreview = (track: SpotifySearchResult) => {
-    if (playingId === track.id) {
-      audioRef.current?.pause();
-      setPlayingId(null);
-    } else {
-      audioRef.current?.pause();
-      if (!track.previewUrl) return;
-      const audio = new Audio(track.previewUrl);
-      audio.volume = 0.5;
-      audio.play().catch(() => {});
-      audioRef.current = audio;
-      setPlayingId(track.id);
-      audio.onended = () => setPlayingId(null);
-    }
+    setPlayingId((prev) => (prev === track.id ? null : track.id));
   };
 
-  useEffect(() => {
-    return () => {
-      audioRef.current?.pause();
-    };
-  }, []);
-
   const handleSelect = (track: SpotifySearchResult) => {
-    audioRef.current?.pause();
     setPlayingId(null);
     const spotifyTrack: SpotifyTrack = {
       id: createId(),
@@ -269,7 +249,7 @@ function SpotifyTab({ onSelect }: { onSelect: (track: MusicTrack) => void }) {
       )}
 
       {/* Track list */}
-      <div className="flex-1 overflow-y-auto px-6 py-4">
+      <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-[var(--color-coral)]" />
@@ -281,29 +261,32 @@ function SpotifyTab({ onSelect }: { onSelect: (track: MusicTrack) => void }) {
         ) : (
           <div className="space-y-2">
             {tracks.map((track) => (
-              <div
-                key={track.id}
-                className="flex items-center gap-3 rounded-xl border border-gray-100 p-3 transition-colors hover:border-gray-200 hover:bg-gray-50"
-              >
-                <img
-                  src={track.albumArt || '/placeholder-music.png'}
-                  alt={track.name}
-                  className="h-12 w-12 flex-shrink-0 rounded-lg object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-gray-900">{track.name}</p>
-                  <p className="truncate text-xs text-gray-500">{track.artist}</p>
-                </div>
-                <span className="flex-shrink-0 text-xs text-gray-400">
-                  {formatDuration(track.durationMs)}
-                </span>
-                {track.previewUrl && (
+              <div key={track.id} className="space-y-2">
+                <div
+                  className="flex items-center gap-3 rounded-xl border border-gray-100 p-3 transition-colors hover:border-gray-200 hover:bg-gray-50"
+                >
+                  <img
+                    src={track.albumArt || '/placeholder-music.png'}
+                    alt={track.name}
+                    className="h-12 w-12 flex-shrink-0 rounded-lg object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-gray-900">{track.name}</p>
+                    <p className="truncate text-xs text-gray-500">{track.artist}</p>
+                  </div>
+                  <span className="flex-shrink-0 text-xs text-gray-400">
+                    {formatDuration(track.durationMs)}
+                  </span>
                   <button
                     onClick={() => togglePreview(track)}
-                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition-colors hover:border-[var(--color-coral)] hover:text-[var(--color-coral)]"
+                    className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border transition-colors ${
+                      playingId === track.id
+                        ? 'border-[var(--color-coral)] bg-[var(--color-coral)] text-white'
+                        : 'border-gray-200 text-gray-500 hover:border-[var(--color-coral)] hover:text-[var(--color-coral)]'
+                    }`}
                     title={playingId === track.id ? 'Stop preview' : 'Preview'}
                   >
                     {playingId === track.id ? (
@@ -316,10 +299,24 @@ function SpotifyTab({ onSelect }: { onSelect: (track: MusicTrack) => void }) {
                       </svg>
                     )}
                   </button>
+                  <Button variant="primary" size="sm" onClick={() => handleSelect(track)}>
+                    Select
+                  </Button>
+                </div>
+                {/* Spotify embed preview */}
+                {playingId === track.id && (
+                  <div className="overflow-hidden rounded-xl">
+                    <iframe
+                      src={`https://open.spotify.com/embed/track/${track.id}?utm_source=generator&theme=0`}
+                      width="100%"
+                      height={80}
+                      frameBorder="0"
+                      allow="autoplay; clipboard-write; encrypted-media"
+                      loading="lazy"
+                      title={`Preview ${track.name}`}
+                    />
+                  </div>
                 )}
-                <Button variant="primary" size="sm" onClick={() => handleSelect(track)}>
-                  Select
-                </Button>
               </div>
             ))}
           </div>

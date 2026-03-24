@@ -48,6 +48,7 @@ export function QuizPlayer({ quizzes, coupleId }: QuizPlayerProps) {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [respondentName, setRespondentName] = useState('');
   const [result, setResult] = useState<{ score: number; total: number } | null>(null);
+  const [submitError, setSubmitError] = useState('');
   const [step, setStep] = useState<'select' | 'play' | 'name' | 'result'>(
     activeQuizzes.length === 1 ? 'play' : 'select',
   );
@@ -82,19 +83,24 @@ export function QuizPlayer({ quizzes, coupleId }: QuizPlayerProps) {
 
   const handleSubmit = async () => {
     if (!selectedQuizId || !respondentName.trim()) return;
+    setSubmitError('');
     const sorted = [...questions].sort((a, b) => a.sortOrder - b.sortOrder);
     const answerArray = sorted.map((q) => answers[q.id] ?? 0);
 
-    const { data } = await submitQuiz({
-      variables: {
-        quizId: selectedQuizId,
-        input: { respondentName: respondentName.trim(), answers: answerArray },
-      },
-    });
+    try {
+      const { data } = await submitQuiz({
+        variables: {
+          quizId: selectedQuizId,
+          input: { respondentName: respondentName.trim(), answers: answerArray },
+        },
+      });
 
-    if (data?.submitQuiz) {
-      setResult({ score: data.submitQuiz.score, total: data.submitQuiz.totalQuestions });
-      setStep('result');
+      if (data?.submitQuiz) {
+        setResult({ score: data.submitQuiz.score, total: data.submitQuiz.totalQuestions });
+        setStep('result');
+      }
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Failed to submit. Please try again.');
     }
   };
 
@@ -102,6 +108,7 @@ export function QuizPlayer({ quizzes, coupleId }: QuizPlayerProps) {
     setAnswers({});
     setRespondentName('');
     setResult(null);
+    setSubmitError('');
     setStep(activeQuizzes.length === 1 ? 'play' : 'select');
     if (activeQuizzes.length > 1) setSelectedQuizId(null);
   };
@@ -245,6 +252,9 @@ export function QuizPlayer({ quizzes, coupleId }: QuizPlayerProps) {
                 if (e.key === 'Enter' && respondentName.trim()) handleSubmit();
               }}
             />
+            {submitError && (
+              <p className="mt-3 text-sm text-red-500">{submitError}</p>
+            )}
             <button
               onClick={handleSubmit}
               disabled={!respondentName.trim() || submitting}
