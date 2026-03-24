@@ -35,6 +35,7 @@ import { parseLayoutConfig, mergeWithThemeDefaults } from '../../lib/layout-conf
 import { parseMusicConfig } from '../../lib/music-config';
 import { sanitizeCss } from '../../lib/css-sanitizer';
 import { MusicPlayer } from '../../components/couple/music-player';
+import { WelcomeGate } from '../../components/couple/welcome-gate';
 import { ScrollReveal } from '../../components/couple/scroll-reveal';
 import { SectionDivider } from '../../components/couple/section-divider';
 import { Particles } from '../../components/couple/particles';
@@ -298,6 +299,17 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
   const userConfig = parseLayoutConfig(couple.layoutConfig);
   const layout = mergeWithThemeDefaults(userConfig, theme);
   const musicConfig = parseMusicConfig(couple.backgroundMusic);
+
+  const firstTrack = musicConfig?.tracks?.[0] ?? null;
+  const shouldShowGate =
+    !!musicConfig?.autoplay &&
+    (musicConfig.enabled ?? false) &&
+    (musicConfig.tracks?.length ?? 0) > 0;
+
+  const [gateDismissed, setGateDismissed] = useState(false);
+
+  // Only suppress MusicPlayer's hidden iframe for Spotify tracks (gate drives playback)
+  const gateHandledAutoplay = shouldShowGate && firstTrack?.source === 'spotify';
 
   const [incrementView] = useMutation(INCREMENT_VIEW_COUNT);
   const [createWish, { loading: creatingWish }] = useMutation(CREATE_WISH, {
@@ -594,6 +606,19 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
 
   return (
     <ThemeProvider themeId={themeId}>
+      {/* Welcome Gate — renders null for returning visitors or when no autoplay */}
+      {shouldShowGate && !gateDismissed && firstTrack && (
+        <WelcomeGate
+          coupleSlug={couple.slug}
+          partner1Name={couple.partner1.name}
+          partner2Name={couple.partner2?.name ?? null}
+          firstTrack={firstTrack}
+          isDark={theme.isDark}
+          primaryColor={theme.colors.primary}
+          secondaryColor={theme.colors.secondary}
+          onDismissed={() => setGateDismissed(true)}
+        />
+      )}
       <LoveMeter />
       <Particles type={theme.particles} />
       <MobileFab onWishClick={scrollToWishes} />
@@ -620,7 +645,12 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
         </Link>
       )}
       {musicConfig?.enabled && musicConfig.tracks.length > 0 && (
-        <MusicPlayer config={musicConfig} slug={couple.slug} hasOwnerNav={!!isOwner} />
+        <MusicPlayer
+          config={musicConfig}
+          slug={couple.slug}
+          hasOwnerNav={!!isOwner}
+          gateHandledAutoplay={gateHandledAutoplay}
+        />
       )}
 
       {/* Custom CSS injection (scoped, sanitized) */}

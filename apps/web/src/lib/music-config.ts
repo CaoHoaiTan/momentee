@@ -30,6 +30,7 @@ export interface BackgroundMusicConfig {
   tracks: MusicTrack[];
   volume: number;
   loop: boolean;
+  autoplay?: boolean;
 }
 
 export function parseMusicConfig(raw: string | null | undefined): BackgroundMusicConfig | null {
@@ -48,6 +49,7 @@ export function parseMusicConfig(raw: string | null | undefined): BackgroundMusi
       tracks,
       volume: typeof parsed.volume === 'number' ? Math.min(100, Math.max(0, parsed.volume)) : 30,
       loop: parsed.loop ?? true,
+      autoplay: parsed.autoplay === true,
     };
   } catch {
     return null;
@@ -59,5 +61,5 @@ export function serializeMusicConfig(config: BackgroundMusicConfig): string {
 }
 
 export function getDefaultMusicConfig(): BackgroundMusicConfig {
-  return { enabled: true, tracks: [], volume: 30, loop: true };
+  return { enabled: true, tracks: [], volume: 30, loop: true, autoplay: false };
 }

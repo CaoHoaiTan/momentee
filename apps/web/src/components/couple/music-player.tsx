@@ -10,9 +10,10 @@ interface MusicPlayerProps {
   config: BackgroundMusicConfig;
   slug: string;
   hasOwnerNav?: boolean;
+  gateHandledAutoplay?: boolean;
 }
 
-export function MusicPlayer({ config, slug, hasOwnerNav = false }: MusicPlayerProps) {
+export function MusicPlayer({ config, slug, hasOwnerNav = false, gateHandledAutoplay = false }: MusicPlayerProps) {
   const [expanded, setExpanded] = useState(false);
   const {
     isPlaying,
@@ -44,7 +45,7 @@ export function MusicPlayer({ config, slug, hasOwnerNav = false }: MusicPlayerPr
         transition={{ delay: 0.5, duration: 0.3 }}
       >
         {/* Hidden Spotify embed for autoplay */}
-        {isSpotify && currentTrack.source === 'spotify' && (
+        {isSpotify && currentTrack.source === 'spotify' && !gateHandledAutoplay && (
           <SpotifyEmbed spotifyId={currentTrack.spotifyId} hidden />
         )}
         <motion.button

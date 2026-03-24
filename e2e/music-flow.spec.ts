@@ -134,6 +134,51 @@ const MUSIC_CONFIG_3_TRACKS = JSON.stringify({
   loop: true,
 });
 
+// Spotify track + autoplay: true (triggers Welcome Gate)
+const MUSIC_CONFIG_SPOTIFY_AUTOPLAY = JSON.stringify({
+  enabled: true,
+  autoplay: true,
+  tracks: [
+    {
+      id: 'gate-track-1',
+      source: 'spotify',
+      spotifyId: FAKE_SPOTIFY_ID,
+      spotifyUri: FAKE_SPOTIFY_URI,
+      previewUrl: null,
+      title: 'Test Song',
+      artist: 'Test Artist',
+      albumArt: FAKE_SPOTIFY_ART,
+      duration: 180,
+      sortOrder: 0,
+    },
+  ],
+  volume: 30,
+  loop: true,
+});
+
+// Upload track + autoplay: true (gate shows but upload path, no Spotify IFrame)
+const MUSIC_CONFIG_UPLOAD_AUTOPLAY = JSON.stringify({
+  enabled: true,
+  autoplay: true,
+  tracks: [
+    {
+      id: 'gate-upload-1',
+      source: 'upload',
+      audioUrl: FAKE_CLOUDINARY_AUDIO,
+      cloudinaryId: FAKE_CLOUDINARY_ID,
+      title: 'Uploaded Song',
+      artist: 'My Artist',
+      albumArt: '',
+      duration: 180,
+      clipStart: 0,
+      clipEnd: 30,
+      sortOrder: 0,
+    },
+  ],
+  volume: 30,
+  loop: true,
+});
+
 // Disabled config (enabled: false, has tracks)
 const MUSIC_CONFIG_DISABLED = JSON.stringify({
   enabled: false,
@@ -927,5 +972,183 @@ test.describe('Frontend — Music Search in Picker', () => {
     await searchInput.fill('xyznonexistent');
 
     await expect(page.getByText('No tracks found')).toBeVisible({ timeout: 3000 });
+  });
+});
+
+// ─── Suite 6: Frontend — Welcome Gate ────────────────────────────────
+
+test.describe('Frontend — Welcome Gate', () => {
+  let accessToken: string;
+  let coupleId: string;
+  let coupleSlug: string;
+  const email = `e2e-music-gate-${uniqueSuffix}@test.dev`;
+  const password = 'password123';
+
+  test.beforeAll(async () => {
+    const auth = await registerUser(email, password, 'Gate User');
+    accessToken = auth.accessToken;
+    const couple = await createCoupleAPI(
+      accessToken,
+      `Gate Couple ${uniqueSuffix}`,
+    );
+    coupleId = couple.id;
+    coupleSlug = couple.slug;
+    await upgradePlanAPI(accessToken, coupleId, 'premium');
+  });
+
+  test('autoplay=false → gate does not appear', async ({ page }) => {
+    // MUSIC_CONFIG_1_SPOTIFY has no autoplay field (defaults to false)
+    await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_1_SPOTIFY);
+    await page.goto(`/${coupleSlug}`);
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(700);
+
+    await expect(
+      page.getByRole('button', { name: 'Enter / Bắt đầu xem' }),
+    ).toHaveCount(0);
+    // Player should still render normally
+    await expect(page.locator('.fixed.bottom-4.left-4.z-30')).toBeVisible();
+  });
+
+  test('music disabled + autoplay=true → gate does not appear', async ({ page }) => {
+    const disabledAutoplay = JSON.stringify({
+      enabled: false,
+      autoplay: true,
+      tracks: [
+        {
+          id: 'gate-track-disabled',
+          source: 'spotify',
+          spotifyId: FAKE_SPOTIFY_ID,
+          spotifyUri: FAKE_SPOTIFY_URI,
+          previewUrl: null,
+          title: 'Test Song',
+          artist: 'Test Artist',
+          albumArt: FAKE_SPOTIFY_ART,
+          duration: 180,
+          sortOrder: 0,
+        },
+      ],
+      volume: 30,
+      loop: true,
+    });
+    await setBackgroundMusicAPI(accessToken, coupleId, disabledAutoplay);
+    await page.goto(`/${coupleSlug}`);
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(700);
+
+    await expect(
+      page.getByRole('button', { name: 'Enter / Bắt đầu xem' }),
+    ).toHaveCount(0);
+  });
+
+  test('first-time visitor: gate is visible fullscreen', async ({ page }) => {
+    await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_SPOTIFY_AUTOPLAY);
+    await page.goto(`/${coupleSlug}`);
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(700);
+
+    await expect(
+      page.getByRole('button', { name: 'Enter / Bắt đầu xem' }),
+    ).toBeVisible();
+  });
+
+  test('gate shows track title and artist', async ({ page }) => {
+    await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_SPOTIFY_AUTOPLAY);
+    await page.goto(`/${coupleSlug}`);
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(700);
+
+    await expect(page.getByText('♪ Test Song — Test Artist')).toBeVisible();
+  });
+
+  test('gate shows partner name', async ({ page }) => {
+    await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_SPOTIFY_AUTOPLAY);
+    await page.goto(`/${coupleSlug}`);
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(700);
+
+    // partner1Name is 'Gate User' (registered name), no partner2 so no '&'
+    await expect(page.getByText('Gate User')).toBeVisible();
+  });
+
+  test('clicking Enter dismisses gate and reveals music player', async ({ page }) => {
+    await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_SPOTIFY_AUTOPLAY);
+    await page.goto(`/${coupleSlug}`);
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(700);
+
+    await page.getByRole('button', { name: 'Enter / Bắt đầu xem' }).click();
+    // Exit animation is 600ms; wait for it to complete + buffer
+    await page.waitForTimeout(900);
+
+    await expect(
+      page.getByRole('button', { name: 'Enter / Bắt đầu xem' }),
+    ).toHaveCount(0);
+    await expect(page.locator('.fixed.bottom-4.left-4.z-30')).toBeVisible();
+  });
+
+  test('clicking Enter sets localStorage gate key', async ({ page }) => {
+    await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_SPOTIFY_AUTOPLAY);
+    await page.goto(`/${coupleSlug}`);
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(700);
+
+    await page.getByRole('button', { name: 'Enter / Bắt đầu xem' }).click();
+    await page.waitForTimeout(900);
+
+    const gateValue = await page.evaluate(
+      (slug) => localStorage.getItem(`momentee_gate_${slug}`),
+      coupleSlug,
+    );
+    expect(gateValue).toBe('1');
+  });
+
+  test('returning visitor: gate skipped, player visible immediately', async ({ page }) => {
+    await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_SPOTIFY_AUTOPLAY);
+
+    // Pre-set localStorage before page load to simulate a returning visitor
+    await page.addInitScript(({ slug }) => {
+      localStorage.setItem(`momentee_gate_${slug}`, '1');
+    }, { slug: coupleSlug });
+
+    await page.goto(`/${coupleSlug}`);
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(700);
+
+    await expect(
+      page.getByRole('button', { name: 'Enter / Bắt đầu xem' }),
+    ).toHaveCount(0);
+    await expect(page.locator('.fixed.bottom-4.left-4.z-30')).toBeVisible();
+  });
+
+  test('upload track + autoplay: gate shows, dismiss reveals Tap to play', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(HTMLMediaElement.prototype, 'play', {
+        configurable: true,
+        writable: true,
+        value: function () {
+          return Promise.resolve();
+        },
+      });
+    });
+
+    await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_UPLOAD_AUTOPLAY);
+    await page.goto(`/${coupleSlug}`);
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(700);
+
+    // Gate should show for upload track too
+    await expect(
+      page.getByRole('button', { name: 'Enter / Bắt đầu xem' }),
+    ).toBeVisible();
+
+    await page.getByRole('button', { name: 'Enter / Bắt đầu xem' }).click();
+    await page.waitForTimeout(900);
+
+    // Gate gone, upload track shows needsInteraction label
+    await expect(
+      page.getByRole('button', { name: 'Enter / Bắt đầu xem' }),
+    ).toHaveCount(0);
+    await expect(page.getByText('Tap to play music')).toBeVisible();
   });
 });
