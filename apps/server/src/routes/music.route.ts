@@ -86,7 +86,8 @@ router.get('/api/music/spotify/search', searchLimiter, async (req, res) => {
     return;
   }
 
-  const limit = Math.min(parseInt(String(req.query.limit ?? '20'), 10) || 20, 50);
+  const parsed = Number(req.query.limit);
+  const limit = Number.isFinite(parsed) && parsed >= 1 ? Math.min(Math.floor(parsed), 50) : 20;
 
   try {
     const token = await getSpotifyAccessToken();
@@ -97,7 +98,9 @@ router.get('/api/music/spotify/search', searchLimiter, async (req, res) => {
       market: 'VN',
     });
 
-    const response = await fetch(`${SPOTIFY_API}/search?${params.toString()}`, {
+    const spotifyUrl = `${SPOTIFY_API}/search?${params.toString()}`;
+    console.log(`[Spotify API] Request: ${spotifyUrl}`);
+    const response = await fetch(spotifyUrl, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
