@@ -154,7 +154,7 @@ function SpotifyTab({ onSelect }: { onSelect: (track: MusicTrack) => void }) {
     setError('');
     try {
       const token = localStorage.getItem('momentee_access_token');
-      const params = new URLSearchParams({ q, limit: '20' });
+      const params = new URLSearchParams({ q, limit: '10' });
       const res = await fetch(`/api/music/spotify/search?${params.toString()}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });

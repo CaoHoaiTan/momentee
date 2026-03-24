@@ -87,7 +87,7 @@ router.get('/api/music/spotify/search', searchLimiter, async (req, res) => {
   }
 
   const parsed = Number(req.query.limit);
-  const limit = Number.isFinite(parsed) && parsed >= 1 ? Math.min(Math.floor(parsed), 50) : 20;
+  const limit = Number.isFinite(parsed) && parsed >= 1 ? Math.min(Math.floor(parsed), 10) : 10;
 
   try {
     const token = await getSpotifyAccessToken();
