@@ -4,21 +4,46 @@ const API_URL = 'http://localhost:4000/graphql';
 const REST_BASE = 'http://localhost:4000';
 const uniqueSuffix = Date.now();
 
-// Fake Jamendo URLs that pass URL validation (*.jamendo.com domain)
-const FAKE_AUDIO_URL = 'https://mp3l.jamendo.com/download/track/12345/mp31/';
-const FAKE_IMAGE_URL = 'https://usercontent.jamendo.com/images/test.jpg';
+// Fake URLs that pass validation
+const FAKE_CLOUDINARY_AUDIO = 'https://res.cloudinary.com/demo/video/upload/test-audio.mp3';
+const FAKE_CLOUDINARY_ID = 'momentee/music/test-audio';
+const FAKE_SPOTIFY_ID = '4uLU6hMCjMI75M1A2tKUQC';
+const FAKE_SPOTIFY_URI = `spotify:track:${FAKE_SPOTIFY_ID}`;
+const FAKE_SPOTIFY_ART = 'https://i.scdn.co/image/test.jpg';
 
-// Valid 1-track backgroundMusic JSON (for PREMIUM plan tests)
-const MUSIC_CONFIG_1_TRACK = JSON.stringify({
+// Valid 1-track backgroundMusic (Spotify, for PREMIUM plan tests)
+const MUSIC_CONFIG_1_SPOTIFY = JSON.stringify({
   enabled: true,
   tracks: [
     {
       id: 'test-track-1',
-      jamendoId: '12345',
+      source: 'spotify',
+      spotifyId: FAKE_SPOTIFY_ID,
+      spotifyUri: FAKE_SPOTIFY_URI,
+      previewUrl: null,
       title: 'Test Song',
       artist: 'Test Artist',
-      albumArt: FAKE_IMAGE_URL,
-      audioUrl: FAKE_AUDIO_URL,
+      albumArt: FAKE_SPOTIFY_ART,
+      duration: 180,
+      sortOrder: 0,
+    },
+  ],
+  volume: 30,
+  loop: true,
+});
+
+// 1-track upload config
+const MUSIC_CONFIG_1_UPLOAD = JSON.stringify({
+  enabled: true,
+  tracks: [
+    {
+      id: 'test-upload-1',
+      source: 'upload',
+      audioUrl: FAKE_CLOUDINARY_AUDIO,
+      cloudinaryId: FAKE_CLOUDINARY_ID,
+      title: 'Uploaded Song',
+      artist: 'My Artist',
+      albumArt: '',
       duration: 180,
       clipStart: 0,
       clipEnd: 30,
@@ -35,23 +60,24 @@ const MUSIC_CONFIG_2_TRACKS = JSON.stringify({
   tracks: [
     {
       id: 'track-1',
-      jamendoId: '111',
+      source: 'spotify',
+      spotifyId: FAKE_SPOTIFY_ID,
+      spotifyUri: FAKE_SPOTIFY_URI,
+      previewUrl: null,
       title: 'Song 1',
       artist: 'Artist 1',
-      albumArt: FAKE_IMAGE_URL,
-      audioUrl: FAKE_AUDIO_URL,
+      albumArt: FAKE_SPOTIFY_ART,
       duration: 180,
-      clipStart: 0,
-      clipEnd: 30,
       sortOrder: 0,
     },
     {
       id: 'track-2',
-      jamendoId: '222',
+      source: 'upload',
+      audioUrl: FAKE_CLOUDINARY_AUDIO,
+      cloudinaryId: FAKE_CLOUDINARY_ID,
       title: 'Song 2',
       artist: 'Artist 2',
-      albumArt: FAKE_IMAGE_URL,
-      audioUrl: FAKE_AUDIO_URL,
+      albumArt: '',
       duration: 200,
       clipStart: 10,
       clipEnd: 40,
@@ -68,23 +94,24 @@ const MUSIC_CONFIG_3_TRACKS = JSON.stringify({
   tracks: [
     {
       id: 'track-1',
-      jamendoId: '111',
+      source: 'spotify',
+      spotifyId: FAKE_SPOTIFY_ID,
+      spotifyUri: FAKE_SPOTIFY_URI,
+      previewUrl: null,
       title: 'Song 1',
       artist: 'Artist 1',
-      albumArt: FAKE_IMAGE_URL,
-      audioUrl: FAKE_AUDIO_URL,
+      albumArt: FAKE_SPOTIFY_ART,
       duration: 180,
-      clipStart: 0,
-      clipEnd: 30,
       sortOrder: 0,
     },
     {
       id: 'track-2',
-      jamendoId: '222',
+      source: 'upload',
+      audioUrl: FAKE_CLOUDINARY_AUDIO,
+      cloudinaryId: FAKE_CLOUDINARY_ID,
       title: 'Song 2',
       artist: 'Artist 2',
-      albumArt: FAKE_IMAGE_URL,
-      audioUrl: FAKE_AUDIO_URL,
+      albumArt: '',
       duration: 200,
       clipStart: 10,
       clipEnd: 40,
@@ -92,14 +119,14 @@ const MUSIC_CONFIG_3_TRACKS = JSON.stringify({
     },
     {
       id: 'track-3',
-      jamendoId: '333',
+      source: 'spotify',
+      spotifyId: '1dGr1c8CrMLDpV6mPbImSI',
+      spotifyUri: 'spotify:track:1dGr1c8CrMLDpV6mPbImSI',
+      previewUrl: null,
       title: 'Song 3',
       artist: 'Artist 3',
-      albumArt: FAKE_IMAGE_URL,
-      audioUrl: FAKE_AUDIO_URL,
+      albumArt: FAKE_SPOTIFY_ART,
       duration: 240,
-      clipStart: 5,
-      clipEnd: 35,
       sortOrder: 2,
     },
   ],
@@ -113,14 +140,14 @@ const MUSIC_CONFIG_DISABLED = JSON.stringify({
   tracks: [
     {
       id: 'test-track-1',
-      jamendoId: '12345',
+      source: 'spotify',
+      spotifyId: FAKE_SPOTIFY_ID,
+      spotifyUri: FAKE_SPOTIFY_URI,
+      previewUrl: null,
       title: 'Test Song',
       artist: 'Test Artist',
-      albumArt: FAKE_IMAGE_URL,
-      audioUrl: FAKE_AUDIO_URL,
+      albumArt: FAKE_SPOTIFY_ART,
       duration: 180,
-      clipStart: 0,
-      clipEnd: 30,
       sortOrder: 0,
     },
   ],
@@ -257,17 +284,29 @@ test.describe('GraphQL API — backgroundMusic CRUD', () => {
     await upgradePlanAPI(accessToken, coupleId, 'premium');
   });
 
-  test('updateCouple stores backgroundMusic', async () => {
+  test('updateCouple stores backgroundMusic (Spotify track)', async () => {
     const json = await setBackgroundMusicAPI(
       accessToken,
       coupleId,
-      MUSIC_CONFIG_1_TRACK,
+      MUSIC_CONFIG_1_SPOTIFY,
+    );
+    expect(json.errors).toBeUndefined();
+    expect(json.data.updateCouple.backgroundMusic).toBeTruthy();
+  });
+
+  test('updateCouple stores backgroundMusic (Upload track)', async () => {
+    const json = await setBackgroundMusicAPI(
+      accessToken,
+      coupleId,
+      MUSIC_CONFIG_1_UPLOAD,
     );
     expect(json.errors).toBeUndefined();
     expect(json.data.updateCouple.backgroundMusic).toBeTruthy();
   });
 
   test('myCouple query returns stored backgroundMusic', async () => {
+    // Reset to Spotify config first
+    await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_1_SPOTIFY);
     const res = await fetch(API_URL, {
       method: 'POST',
       headers: {
@@ -284,7 +323,8 @@ test.describe('GraphQL API — backgroundMusic CRUD', () => {
     const parsed = JSON.parse(json.data.myCouple.backgroundMusic);
     expect(parsed.enabled).toBe(true);
     expect(parsed.tracks.length).toBe(1);
-    expect(parsed.tracks[0].title).toBe('Test Song');
+    expect(parsed.tracks[0].source).toBe('spotify');
+    expect(parsed.tracks[0].spotifyId).toBe(FAKE_SPOTIFY_ID);
   });
 
   test('couple (public) query by slug returns backgroundMusic', async () => {
@@ -307,17 +347,40 @@ test.describe('GraphQL API — backgroundMusic CRUD', () => {
     expect(json.data.updateCouple.backgroundMusic).toBeNull();
   });
 
-  test('non-Jamendo audioUrl returns BAD_USER_INPUT', async () => {
+  test('invalid track source returns BAD_USER_INPUT', async () => {
     const badConfig = JSON.stringify({
       enabled: true,
       tracks: [
         {
           id: 'bad-track',
-          jamendoId: '99999',
+          source: 'invalid',
           title: 'Bad Track',
           artist: 'Bad Artist',
-          albumArt: FAKE_IMAGE_URL,
+          albumArt: '',
+          duration: 120,
+          sortOrder: 0,
+        },
+      ],
+      volume: 30,
+      loop: false,
+    });
+    const json = await setBackgroundMusicAPI(accessToken, coupleId, badConfig);
+    expect(json.errors).toBeDefined();
+    expect(json.errors[0].extensions.code).toBe('BAD_USER_INPUT');
+  });
+
+  test('invalid Cloudinary URL for upload returns BAD_USER_INPUT', async () => {
+    const badConfig = JSON.stringify({
+      enabled: true,
+      tracks: [
+        {
+          id: 'bad-track',
+          source: 'upload',
           audioUrl: 'https://example.com/bad-audio.mp3',
+          cloudinaryId: 'fake',
+          title: 'Bad Track',
+          artist: 'Bad Artist',
+          albumArt: '',
           duration: 120,
           clipStart: 0,
           clipEnd: 30,
@@ -330,7 +393,7 @@ test.describe('GraphQL API — backgroundMusic CRUD', () => {
     const json = await setBackgroundMusicAPI(accessToken, coupleId, badConfig);
     expect(json.errors).toBeDefined();
     expect(json.errors[0].extensions.code).toBe('BAD_USER_INPUT');
-    expect(json.errors[0].message).toContain('Jamendo');
+    expect(json.errors[0].message).toContain('Cloudinary');
   });
 
   test('FREE plan: 1 track returns FORBIDDEN', async () => {
@@ -347,7 +410,7 @@ test.describe('GraphQL API — backgroundMusic CRUD', () => {
     const json = await setBackgroundMusicAPI(
       freeAuth.accessToken,
       freeCouple.id,
-      MUSIC_CONFIG_1_TRACK,
+      MUSIC_CONFIG_1_SPOTIFY,
     );
     expect(json.errors).toBeDefined();
     expect(json.errors[0].extensions.code).toBe('FORBIDDEN');
@@ -355,11 +418,10 @@ test.describe('GraphQL API — backgroundMusic CRUD', () => {
   });
 
   test('PREMIUM plan: 1 track succeeds', async () => {
-    // coupleId is on PREMIUM (upgraded in beforeAll); re-set after null from earlier test
     const json = await setBackgroundMusicAPI(
       accessToken,
       coupleId,
-      MUSIC_CONFIG_1_TRACK,
+      MUSIC_CONFIG_1_SPOTIFY,
     );
     expect(json.errors).toBeUndefined();
     expect(json.data.updateCouple.backgroundMusic).toBeTruthy();
@@ -399,7 +461,7 @@ test.describe('GraphQL API — backgroundMusic CRUD', () => {
         }`,
         variables: {
           id: coupleId,
-          input: { backgroundMusic: MUSIC_CONFIG_1_TRACK },
+          input: { backgroundMusic: MUSIC_CONFIG_1_SPOTIFY },
         },
       }),
     });
@@ -420,38 +482,47 @@ test.describe('REST API — /api/music routes', () => {
     accessToken = auth.accessToken;
   });
 
-  test('GET /api/music/categories without auth returns 401', async () => {
-    const res = await fetch(`${REST_BASE}/api/music/categories`);
+  test('GET /api/music/spotify/categories without auth returns 401', async () => {
+    const res = await fetch(`${REST_BASE}/api/music/spotify/categories`);
     expect(res.status).toBe(401);
   });
 
-  test('GET /api/music/categories with auth returns categories list', async () => {
-    const res = await fetch(`${REST_BASE}/api/music/categories`, {
+  test('GET /api/music/spotify/categories with auth returns categories', async () => {
+    const res = await fetch(`${REST_BASE}/api/music/spotify/categories`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     expect(res.status).toBe(200);
     const body = (await res.json()) as {
-      categories: Array<{ id: string; label: string; tags: string }>;
+      categories: Array<{ id: string; label: string }>;
     };
     expect(Array.isArray(body.categories)).toBe(true);
     expect(body.categories.length).toBe(7);
     expect(body.categories[0]).toHaveProperty('id');
     expect(body.categories[0]).toHaveProperty('label');
-    expect(body.categories[0]).toHaveProperty('tags');
   });
 
-  test('GET /api/music/search without auth returns 401', async () => {
-    const res = await fetch(`${REST_BASE}/api/music/search?q=love`);
+  test('GET /api/music/spotify/search without auth returns 401', async () => {
+    const res = await fetch(`${REST_BASE}/api/music/spotify/search?q=love`);
     expect(res.status).toBe(401);
   });
 
-  test('GET /api/music/search with auth but no JAMENDO_CLIENT_ID returns 503', async () => {
-    const res = await fetch(`${REST_BASE}/api/music/search?q=romantic`, {
+  test('GET /api/music/spotify/search without credentials returns 503', async () => {
+    const res = await fetch(`${REST_BASE}/api/music/spotify/search?q=romantic`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
+    // Returns 503 when SPOTIFY_CLIENT_ID/SECRET not configured in test env
     expect(res.status).toBe(503);
     const body = (await res.json()) as { error: string };
     expect(body.error).toContain('not configured');
+  });
+
+  test('POST /api/music/upload without auth returns 401', async () => {
+    const res = await fetch(`${REST_BASE}/api/music/upload`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file: 'data:audio/mpeg;base64,dGVzdA==' }),
+    });
+    expect(res.status).toBe(401);
   });
 });
 
@@ -478,13 +549,11 @@ test.describe('Frontend — Music Settings in Dashboard', () => {
     await page.goto('/dashboard/settings');
     await page.waitForLoadState('networkidle');
 
-    // The Background Music card h2 and the locked-state badge should be visible
     await expect(
       page.getByRole('heading', { name: 'Background Music', level: 2 }),
     ).toBeVisible();
     await expect(page.getByText('Upgrade to Premium to unlock')).toBeVisible();
 
-    // The "Choose Music" button should not exist for free users
     await expect(
       page.getByRole('button', { name: 'Choose Music' }),
     ).toHaveCount(0);
@@ -498,29 +567,23 @@ test.describe('Frontend — Music Settings in Dashboard', () => {
     await page.goto('/dashboard/settings');
     await page.waitForLoadState('networkidle');
 
-    // Upgrade prompt should be gone
     await expect(page.getByText('Upgrade to Premium to unlock')).not.toBeVisible();
 
-    // "Choose Music" button should now be visible (no tracks yet → shows "Choose Music")
     await expect(
       page.getByRole('button', { name: 'Choose Music' }),
     ).toBeVisible();
   });
 
   test('enable toggle turns on music', async ({ page }) => {
-    // Already upgraded to premium_plus in previous test
     await loginViaUI(page, email, password);
     await page.goto('/dashboard/settings');
     await page.waitForLoadState('networkidle');
 
-    // The music enable toggle label uses class "relative flex cursor-pointer items-center"
-    // (distinct from privacy toggle which uses "flex cursor-pointer items-center gap-3")
     const musicToggleLabel = page.locator(
       'label.relative.flex.cursor-pointer.items-center',
     ).first();
     const checkbox = musicToggleLabel.locator('input[type="checkbox"]');
 
-    // Toggle on if not already checked
     const isChecked = await checkbox.isChecked();
     if (!isChecked) {
       await musicToggleLabel.click();
@@ -528,7 +591,7 @@ test.describe('Frontend — Music Settings in Dashboard', () => {
     await expect(checkbox).toBeChecked();
   });
 
-  test('"Choose Music" button opens music picker modal', async ({ page }) => {
+  test('"Choose Music" button opens picker with tabs', async ({ page }) => {
     await loginViaUI(page, email, password);
     await page.goto('/dashboard/settings');
     await page.waitForLoadState('networkidle');
@@ -537,9 +600,13 @@ test.describe('Frontend — Music Settings in Dashboard', () => {
     await expect(
       page.getByRole('heading', { name: 'Choose Music', level: 2 }),
     ).toBeVisible();
+
+    // Verify tabs exist
+    await expect(page.getByText('Search Spotify')).toBeVisible();
+    await expect(page.getByText('Upload Your Own')).toBeVisible();
   });
 
-  test('music picker shows category tabs', async ({ page }) => {
+  test('music picker shows category pills on Spotify tab', async ({ page }) => {
     await loginViaUI(page, email, password);
     await page.goto('/dashboard/settings');
     await page.waitForLoadState('networkidle');
@@ -564,13 +631,24 @@ test.describe('Frontend — Music Settings in Dashboard', () => {
       page.getByRole('heading', { name: 'Choose Music', level: 2 }),
     ).toBeVisible();
 
-    // Click the backdrop (absolute inset-0 overlay inside the fixed modal container)
     await page
       .locator('.fixed.inset-0.z-50 > .absolute.inset-0')
       .click({ force: true });
     await expect(
       page.getByRole('heading', { name: 'Choose Music', level: 2 }),
     ).not.toBeVisible();
+  });
+
+  test('upload tab shows file upload area', async ({ page }) => {
+    await loginViaUI(page, email, password);
+    await page.goto('/dashboard/settings');
+    await page.waitForLoadState('networkidle');
+
+    await page.getByRole('button', { name: 'Choose Music' }).click();
+    await page.getByText('Upload Your Own').click();
+
+    await expect(page.getByText('Click to select an audio file')).toBeVisible();
+    await expect(page.getByText('MP3, M4A, OGG, WAV, AAC')).toBeVisible();
   });
 });
 
@@ -596,7 +674,6 @@ test.describe('Frontend — Music Player on Public Page', () => {
   });
 
   test('no music config → no player', async ({ page }) => {
-    // A fresh couple with no music set
     const noMusicEmail = `e2e-no-music-${uniqueSuffix}@test.dev`;
     const noMusicAuth = await registerUser(
       noMusicEmail,
@@ -624,20 +701,18 @@ test.describe('Frontend — Music Player on Public Page', () => {
     await expect(player).toHaveCount(0);
   });
 
-  test('music enabled + tracks → player visible', async ({ page }) => {
-    await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_1_TRACK);
+  test('Spotify track → player visible with Spotify icon', async ({ page }) => {
+    await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_1_SPOTIFY);
     await page.goto(`/${coupleSlug}`);
     await page.waitForLoadState('networkidle');
-    // Wait for the player's enter animation (delay: 0.5s + duration: 0.3s)
     await page.waitForTimeout(900);
 
     const player = page.locator('.fixed.bottom-4.left-4.z-30');
     await expect(player).toBeVisible();
   });
 
-  test('player shows needsInteraction label', async ({ page }) => {
-    // No audio mock — headless Chromium blocks autoplay → needsInteraction = true
-    await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_1_TRACK);
+  test('Upload track → player shows needsInteraction label', async ({ page }) => {
+    await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_1_UPLOAD);
     await page.goto(`/${coupleSlug}`);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(900);
@@ -645,33 +720,22 @@ test.describe('Frontend — Music Player on Public Page', () => {
     await expect(page.getByText('Tap to play music')).toBeVisible();
   });
 
-  test('clicking player expands controls', async ({ page }) => {
-    // Mock audio.play to always resolve so needsInteraction = false from mount
-    await page.addInitScript(() => {
-      Object.defineProperty(HTMLMediaElement.prototype, 'play', {
-        configurable: true,
-        writable: true,
-        value: function () {
-          return Promise.resolve();
-        },
-      });
-    });
-
-    await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_1_TRACK);
+  test('clicking Spotify player expands with embed iframe', async ({ page }) => {
+    await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_1_SPOTIFY);
     await page.goto(`/${coupleSlug}`);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(900);
 
-    // With play mocked, needsInteraction = false → click expands the player
     const playerBtn = page.locator('.fixed.bottom-4.left-4.z-30').locator('button').first();
     await playerBtn.click();
     await page.waitForTimeout(300);
 
-    const expanded = page.locator('.fixed.bottom-4.left-4.z-30.w-64');
-    await expect(expanded).toBeVisible();
+    // Expanded player should contain Spotify embed iframe
+    const iframe = page.locator('iframe[src*="open.spotify.com/embed"]');
+    await expect(iframe).toBeVisible();
   });
 
-  test('play/pause button in expanded player shows track title', async ({
+  test('clicking upload player expands with custom controls', async ({
     page,
   }) => {
     await page.addInitScript(() => {
@@ -684,7 +748,7 @@ test.describe('Frontend — Music Player on Public Page', () => {
       });
     });
 
-    await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_1_TRACK);
+    await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_1_UPLOAD);
     await page.goto(`/${coupleSlug}`);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(900);
@@ -693,11 +757,10 @@ test.describe('Frontend — Music Player on Public Page', () => {
     await playerBtn.click();
     await page.waitForTimeout(300);
 
-    // Expanded panel shows track title and play button
-    await expect(page.getByText('Test Song')).toBeVisible();
-    const expanded = page.locator('.fixed.bottom-4.left-4.z-30.w-64');
-    // Play/pause is the second button in expanded (after collapse)
-    await expect(expanded.getByRole('button').nth(1)).toBeVisible();
+    // Should show track title and custom controls (no Spotify iframe)
+    await expect(page.getByText('Uploaded Song')).toBeVisible();
+    const iframe = page.locator('iframe[src*="open.spotify.com/embed"]');
+    await expect(iframe).toHaveCount(0);
   });
 
   test('collapse button closes expanded player', async ({ page }) => {
@@ -711,7 +774,7 @@ test.describe('Frontend — Music Player on Public Page', () => {
       });
     });
 
-    await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_1_TRACK);
+    await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_1_UPLOAD);
     await page.goto(`/${coupleSlug}`);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(900);
@@ -720,17 +783,149 @@ test.describe('Frontend — Music Player on Public Page', () => {
     await playerBtn.click();
     await page.waitForTimeout(300);
 
-    const expanded = page.locator('.fixed.bottom-4.left-4.z-30.w-64');
+    const expanded = page.locator('.fixed.bottom-4.left-4.z-30.w-72');
     await expect(expanded).toBeVisible();
 
-    // Collapse button is the first button in the expanded panel header
     const collapseBtn = expanded.getByRole('button').first();
     await collapseBtn.click();
     await page.waitForTimeout(300);
 
-    // Expanded panel disappears
-    await expect(page.locator('.fixed.bottom-4.left-4.z-30.w-64')).toHaveCount(0);
-    // Small collapsed button remains
+    await expect(page.locator('.fixed.bottom-4.left-4.z-30.w-72')).toHaveCount(0);
     await expect(page.locator('.fixed.bottom-4.left-4.z-30')).toBeVisible();
+  });
+});
+
+// ─── Suite 5: Frontend — Music Search in Picker (mocked) ────────────
+
+test.describe('Frontend — Music Search in Picker', () => {
+  let accessToken: string;
+  let coupleId: string;
+  const email = `e2e-music-search-${uniqueSuffix}@test.dev`;
+  const password = 'password123';
+
+  const MOCK_SPOTIFY_RESULTS = [
+    {
+      id: '2001',
+      name: 'Ocean Waves',
+      artist: 'Nature Sounds',
+      albumArt: FAKE_SPOTIFY_ART,
+      durationMs: 240000,
+      previewUrl: null,
+      spotifyUri: 'spotify:track:2001',
+    },
+    {
+      id: '2002',
+      name: 'Ocean Breeze',
+      artist: 'Chill Vibes',
+      albumArt: FAKE_SPOTIFY_ART,
+      durationMs: 180000,
+      previewUrl: null,
+      spotifyUri: 'spotify:track:2002',
+    },
+  ];
+
+  const MOCK_CATEGORY_RESULTS = [
+    {
+      id: '1001',
+      name: 'Romantic Sunset',
+      artist: 'Love Artist',
+      albumArt: FAKE_SPOTIFY_ART,
+      durationMs: 210000,
+      previewUrl: null,
+      spotifyUri: 'spotify:track:1001',
+    },
+  ];
+
+  test.beforeAll(async () => {
+    const auth = await registerUser(email, password, 'Music Search User');
+    accessToken = auth.accessToken;
+    const couple = await createCoupleAPI(
+      accessToken,
+      `Music Search Couple ${uniqueSuffix}`,
+    );
+    coupleId = couple.id;
+    await upgradePlanAPI(accessToken, coupleId, 'premium_plus');
+  });
+
+  async function mockSpotifySearchAPI(page: import('@playwright/test').Page) {
+    await page.route('**/api/music/spotify/search*', (route) => {
+      const url = new URL(route.request().url());
+      const q = url.searchParams.get('q') || '';
+
+      const authHeader = route.request().headers()['authorization'];
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return route.fulfill({
+          status: 401,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: 'Unauthorized' }),
+        });
+      }
+
+      const results = q.includes('ocean') ? MOCK_SPOTIFY_RESULTS : MOCK_CATEGORY_RESULTS;
+
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ results }),
+      });
+    });
+  }
+
+  async function openMusicPicker(page: import('@playwright/test').Page) {
+    await loginViaUI(page, email, password);
+    await page.goto('/dashboard/settings');
+    await page.waitForLoadState('networkidle');
+    await mockSpotifySearchAPI(page);
+    await page.getByRole('button', { name: 'Choose Music' }).click();
+    await expect(
+      page.getByRole('heading', { name: 'Choose Music', level: 2 }),
+    ).toBeVisible();
+  }
+
+  test('category tracks load on open with correct auth', async ({ page }) => {
+    await openMusicPicker(page);
+    await expect(page.getByText('Romantic Sunset')).toBeVisible({ timeout: 3000 });
+  });
+
+  test('typing search shows Spotify results', async ({ page }) => {
+    await openMusicPicker(page);
+
+    const searchInput = page.getByPlaceholder('Search by track name or artist...');
+    await searchInput.fill('ocean');
+
+    await expect(page.getByText('Ocean Waves')).toBeVisible({ timeout: 3000 });
+    await expect(page.getByText('Ocean Breeze')).toBeVisible();
+  });
+
+  test('clearing search reloads category tracks', async ({ page }) => {
+    await openMusicPicker(page);
+
+    const searchInput = page.getByPlaceholder('Search by track name or artist...');
+    await searchInput.fill('ocean');
+    await expect(page.getByText('Ocean Waves')).toBeVisible({ timeout: 3000 });
+
+    await searchInput.fill('');
+    await expect(page.getByText('Romantic Sunset')).toBeVisible({ timeout: 3000 });
+  });
+
+  test('search with no results shows empty state', async ({ page }) => {
+    await loginViaUI(page, email, password);
+    await page.goto('/dashboard/settings');
+    await page.waitForLoadState('networkidle');
+
+    await page.route('**/api/music/spotify/search*', (route) => {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ results: [] }),
+      });
+    });
+
+    await page.getByRole('button', { name: 'Choose Music' }).click();
+
+    const searchInput = page.getByPlaceholder('Search by track name or artist...');
+    await searchInput.fill('xyznonexistent');
+
+    await expect(page.getByText('No tracks found')).toBeVisible({ timeout: 3000 });
   });
 });

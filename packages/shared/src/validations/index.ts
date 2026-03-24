@@ -46,7 +46,7 @@ export const updateCoupleSchema = z.object({
   weddingDate: z.string().optional(),
   theme: z.string().max(50).optional(),
   layoutConfig: z.string().max(2000).optional(),
-  backgroundMusic: z.string().max(5000).optional(),
+  backgroundMusic: z.string().max(8000).optional(),
   coverPhoto: z.string().optional(),
   isPublic: z.boolean().optional(),
 });

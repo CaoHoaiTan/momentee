@@ -114,6 +114,28 @@ export async function uploadVideo(
 }
 
 /**
+ * Upload a base64-encoded audio file to Cloudinary.
+ * Cloudinary uses resource_type 'video' for audio files.
+ */
+export async function uploadAudio(
+  file: string,
+  folder: string,
+): Promise<{ url: string; publicId: string; duration: number; format: string; bytes: number }> {
+  const result: UploadApiResponse = await cloudinary.uploader.upload(file, {
+    folder: `momentee/${folder}`,
+    resource_type: 'video',
+  });
+
+  return {
+    url: result.secure_url,
+    publicId: result.public_id,
+    duration: Math.round(result.duration ?? 0),
+    format: result.format,
+    bytes: result.bytes,
+  };
+}
+
+/**
  * Delete an asset by its public_id.
  */
 export async function deleteAsset(

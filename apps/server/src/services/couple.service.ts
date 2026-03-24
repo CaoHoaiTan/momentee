@@ -144,11 +144,21 @@ export async function update(
       if (parsed && typeof parsed === 'object') {
         const tracks = Array.isArray(parsed.tracks) ? parsed.tracks : [];
         for (const track of tracks) {
-          if (track.audioUrl && !isValidJamendoUrl(track.audioUrl)) {
-            throw ValidationError('Invalid audio URL: only Jamendo URLs are allowed');
+          if (!track.source || !['spotify', 'upload'].includes(track.source)) {
+            throw ValidationError('Invalid track source: must be "spotify" or "upload"');
           }
-          if (track.albumArt && !isValidJamendoUrl(track.albumArt)) {
-            throw ValidationError('Invalid album art URL: only Jamendo URLs are allowed');
+          if (track.source === 'spotify') {
+            if (!track.spotifyId || !/^[a-zA-Z0-9]{22}$/.test(track.spotifyId)) {
+              throw ValidationError('Invalid Spotify track ID');
+            }
+          }
+          if (track.source === 'upload') {
+            if (track.audioUrl && !isValidCloudinaryUrl(track.audioUrl)) {
+              throw ValidationError('Invalid audio URL: only Cloudinary URLs are allowed');
+            }
+          }
+          if (track.albumArt && !isValidAlbumArtUrl(track.albumArt)) {
+            throw ValidationError('Invalid album art URL');
           }
         }
         // Enforce plan limit
@@ -291,10 +301,23 @@ function verifyOwnership(
   }
 }
 
-function isValidJamendoUrl(url: string): boolean {
+function isValidCloudinaryUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
-    return parsed.hostname.endsWith('.jamendo.com');
+    return parsed.hostname === 'res.cloudinary.com';
+  } catch {
+    return false;
+  }
+}
+
+function isValidAlbumArtUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return (
+      parsed.hostname === 'res.cloudinary.com' ||
+      parsed.hostname === 'i.scdn.co' ||
+      parsed.hostname.endsWith('.spotifycdn.com')
+    );
   } catch {
     return false;
   }

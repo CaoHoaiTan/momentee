@@ -33,6 +33,7 @@ export interface BackgroundMusicState {
   volume: number;
   needsInteraction: boolean;
   currentTrack: MusicTrack | null;
+  isSpotify: boolean;
   toggle: () => void;
   toggleMute: () => void;
   setVolume: (v: number) => void;
@@ -59,6 +60,7 @@ export function useBackgroundMusic(
   const fadeRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const currentTrack = tracks[trackIndex] ?? null;
+  const isSpotify = currentTrack?.source === 'spotify';
 
   const stopFade = () => {
     if (fadeRef.current) {
@@ -80,6 +82,9 @@ export function useBackgroundMusic(
   }, []);
 
   const loadAndPlay = useCallback((track: MusicTrack, vol: number, muted: boolean) => {
+    // Only handle upload tracks with HTML5 Audio
+    if (track.source !== 'upload') return;
+
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.src = '';
@@ -118,12 +123,27 @@ export function useBackgroundMusic(
     };
   }, [tracks, loop, fadeIn]);
 
-  // Load track when index changes (or on mount)
+  // Load track when index changes (or on mount) — only for upload tracks
   useEffect(() => {
     if (!currentTrack) return;
+
+    // Spotify tracks are handled by the iframe embed, not HTML5 Audio
+    if (currentTrack.source === 'spotify') {
+      // Clean up any existing audio from a previous upload track
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+        audioRef.current = null;
+      }
+      stopFade();
+      setIsPlaying(false);
+      setNeedsInteraction(false);
+      return;
+    }
+
     const cleanup = loadAndPlay(currentTrack, volume, isMuted);
     return () => {
-      cleanup();
+      cleanup?.();
       audioRef.current?.pause();
       stopFade();
     };
@@ -143,6 +163,8 @@ export function useBackgroundMusic(
   }, [isMuted]);
 
   const toggle = useCallback(() => {
+    if (isSpotify) return; // Spotify embed handles its own playback
+
     const audio = audioRef.current;
     if (!audio || !currentTrack) return;
     if (isPlaying) {
@@ -158,7 +180,7 @@ export function useBackgroundMusic(
         }).catch(() => setNeedsInteraction(true));
       }
     }
-  }, [isPlaying, needsInteraction, currentTrack, volume, isMuted, loadAndPlay]);
+  }, [isPlaying, needsInteraction, currentTrack, volume, isMuted, loadAndPlay, isSpotify]);
 
   const toggleMute = useCallback(() => {
     setIsMuted((m) => {
@@ -198,6 +220,7 @@ export function useBackgroundMusic(
     volume,
     needsInteraction,
     currentTrack,
+    isSpotify,
     toggle,
     toggleMute,
     setVolume,

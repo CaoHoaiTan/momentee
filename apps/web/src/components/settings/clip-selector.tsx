@@ -2,10 +2,13 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '../ui/button';
-import type { JamendoTrack } from './music-picker';
 
 interface ClipSelectorProps {
-  track: JamendoTrack;
+  audioUrl: string;
+  title: string;
+  artist: string;
+  albumArt: string;
+  duration: number;
   onConfirm: (clipStart: number, clipEnd: number) => void;
   onBack: () => void;
 }
@@ -19,8 +22,8 @@ function formatTime(seconds: number): string {
 const MIN_CLIP = 15;
 const MAX_CLIP = 60;
 
-export function ClipSelector({ track, onConfirm, onBack }: ClipSelectorProps) {
-  const duration = Math.max(track.duration, 1);
+export function ClipSelector({ audioUrl, title, artist, albumArt, duration: propDuration, onConfirm, onBack }: ClipSelectorProps) {
+  const duration = Math.max(propDuration, 1);
   const [clipStart, setClipStart] = useState(0);
   const [clipEnd, setClipEnd] = useState(Math.min(MAX_CLIP, duration));
   const [isPlaying, setIsPlaying] = useState(false);
@@ -34,7 +37,7 @@ export function ClipSelector({ track, onConfirm, onBack }: ClipSelectorProps) {
   const clampedStart = Math.max(0, Math.min(clipStart, clampedEnd - MIN_CLIP));
 
   useEffect(() => {
-    const audio = new Audio(track.audio);
+    const audio = new Audio(audioUrl);
     audio.volume = 0.6;
     audioRef.current = audio;
 
@@ -52,7 +55,7 @@ export function ClipSelector({ track, onConfirm, onBack }: ClipSelectorProps) {
       audio.pause();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [track.audio]);
+  }, [audioUrl]);
 
   const togglePlay = () => {
     const audio = audioRef.current;
@@ -112,15 +115,23 @@ export function ClipSelector({ track, onConfirm, onBack }: ClipSelectorProps) {
     <div className="space-y-6">
       {/* Track info */}
       <div className="flex items-center gap-3">
-        <img
-          src={track.image}
-          alt={track.name}
-          className="h-12 w-12 rounded-xl object-cover"
-          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-        />
+        {albumArt ? (
+          <img
+            src={albumArt}
+            alt={title}
+            className="h-12 w-12 rounded-xl object-cover"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
+        ) : (
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100">
+            <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+            </svg>
+          </div>
+        )}
         <div>
-          <p className="font-semibold text-gray-900">{track.name}</p>
-          <p className="text-sm text-gray-500">{track.artist_name}</p>
+          <p className="font-semibold text-gray-900">{title}</p>
+          <p className="text-sm text-gray-500">{artist}</p>
         </div>
       </div>
 

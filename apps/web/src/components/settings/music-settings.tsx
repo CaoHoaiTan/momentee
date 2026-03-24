@@ -1,21 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { createId } from '@paralleldrive/cuid2';
 import { AnimatePresence } from 'framer-motion';
 import { MusicPicker } from './music-picker';
-import { ClipSelector } from './clip-selector';
 import { Button } from '../ui/button';
 import type { BackgroundMusicConfig, MusicTrack } from '../../lib/music-config';
-import type { JamendoTrack } from './music-picker';
 
 interface MusicSettingsProps {
   plan: string;
   value: BackgroundMusicConfig | null;
   onChange: (config: BackgroundMusicConfig | null) => void;
 }
-
-type PickerStep = 'browse' | 'clip';
 
 const PLAN_TRACK_LIMITS: Record<string, number> = {
   free: 0,
@@ -25,8 +20,6 @@ const PLAN_TRACK_LIMITS: Record<string, number> = {
 
 export function MusicSettings({ plan, value, onChange }: MusicSettingsProps) {
   const [showPicker, setShowPicker] = useState(false);
-  const [pickerStep, setPickerStep] = useState<PickerStep>('browse');
-  const [selectedTrack, setSelectedTrack] = useState<JamendoTrack | null>(null);
   const maxTracks = PLAN_TRACK_LIMITS[plan?.toLowerCase()] ?? 0;
 
   if (maxTracks === 0) {
@@ -61,40 +54,29 @@ export function MusicSettings({ plan, value, onChange }: MusicSettingsProps) {
     onChange({ ...config, loop: !config.loop });
   };
 
-  const handleRemoveTrack = (id: string) => {
-    const tracks = config.tracks.filter((t) => t.id !== id);
+  const handleRemoveTrack = async (track: MusicTrack) => {
+    const tracks = config.tracks.filter((t) => t.id !== track.id);
     onChange({ ...config, tracks });
+
+    // Clean up Cloudinary asset for uploaded tracks
+    if (track.source === 'upload' && track.cloudinaryId) {
+      try {
+        const token = localStorage.getItem('momentee_access_token');
+        await fetch(`/api/music/upload/${encodeURIComponent(track.cloudinaryId)}`, {
+          method: 'DELETE',
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+      } catch {
+        // Best-effort cleanup
+      }
+    }
   };
 
-  const handleBrowse = () => {
-    setPickerStep('browse');
-    setSelectedTrack(null);
-    setShowPicker(true);
-  };
-
-  const handleTrackSelected = (track: JamendoTrack) => {
-    setSelectedTrack(track);
-    setPickerStep('clip');
-  };
-
-  const handleClipConfirm = (clipStart: number, clipEnd: number) => {
-    if (!selectedTrack) return;
-    const newTrack: MusicTrack = {
-      id: createId(),
-      jamendoId: selectedTrack.id,
-      title: selectedTrack.name,
-      artist: selectedTrack.artist_name,
-      albumArt: selectedTrack.image,
-      audioUrl: selectedTrack.audio,
-      duration: selectedTrack.duration,
-      clipStart,
-      clipEnd,
-      sortOrder: config.tracks.length,
-    };
+  const handleTrackSelected = (track: MusicTrack) => {
+    const newTrack = { ...track, sortOrder: config.tracks.length };
     const tracks = [...config.tracks, newTrack];
     onChange({ ...config, tracks, enabled: true });
     setShowPicker(false);
-    setSelectedTrack(null);
   };
 
   const canAddMore = config.tracks.length < maxTracks;
@@ -133,21 +115,35 @@ export function MusicSettings({ plan, value, onChange }: MusicSettingsProps) {
                 <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-white text-xs font-medium text-gray-500 shadow-sm">
                   {idx + 1}
                 </span>
-                {track.albumArt && (
+                {track.albumArt ? (
                   <img
                     src={track.albumArt}
                     alt={track.title}
                     className="h-10 w-10 flex-shrink-0 rounded-lg object-cover"
                   />
+                ) : (
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gray-200">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                    </svg>
+                  </div>
                 )}
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-gray-900">{track.title}</p>
                   <p className="truncate text-xs text-gray-500">
-                    {track.artist} · {Math.round(track.clipEnd - track.clipStart)}s clip
+                    {track.artist}
+                    {track.source === 'upload' && ` · ${Math.round(track.clipEnd - track.clipStart)}s clip`}
                   </p>
                 </div>
+                <span className={`flex-shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                  track.source === 'spotify'
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-blue-100 text-blue-700'
+                }`}>
+                  {track.source === 'spotify' ? 'Spotify' : 'Uploaded'}
+                </span>
                 <button
-                  onClick={() => handleRemoveTrack(track.id)}
+                  onClick={() => handleRemoveTrack(track)}
                   className="flex-shrink-0 rounded-lg p-1 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500"
                   title="Remove track"
                 >
@@ -162,7 +158,7 @@ export function MusicSettings({ plan, value, onChange }: MusicSettingsProps) {
 
         {/* Add track button */}
         {canAddMore && (
-          <Button variant="outline" size="sm" onClick={handleBrowse}>
+          <Button variant="outline" size="sm" onClick={() => setShowPicker(true)}>
             <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
             </svg>
@@ -210,24 +206,10 @@ export function MusicSettings({ plan, value, onChange }: MusicSettingsProps) {
       {/* Picker modal */}
       <AnimatePresence>
         {showPicker && (
-          pickerStep === 'browse' ? (
-            <MusicPicker
-              onSelect={handleTrackSelected}
-              onClose={() => setShowPicker(false)}
-            />
-          ) : selectedTrack ? (
-            <div className="fixed inset-0 z-50 flex items-center justify-center">
-              <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowPicker(false)} />
-              <div className="relative mx-4 w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
-                <h2 className="mb-4 text-lg font-semibold text-gray-900">Select Clip</h2>
-                <ClipSelector
-                  track={selectedTrack}
-                  onConfirm={handleClipConfirm}
-                  onBack={() => setPickerStep('browse')}
-                />
-              </div>
-            </div>
-          ) : null
+          <MusicPicker
+            onSelect={handleTrackSelected}
+            onClose={() => setShowPicker(false)}
+          />
         )}
       </AnimatePresence>
     </>

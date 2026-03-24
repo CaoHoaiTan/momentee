@@ -1,15 +1,29 @@
-export interface MusicTrack {
+export interface MusicTrackBase {
   id: string;
-  jamendoId: string;
+  source: 'spotify' | 'upload';
   title: string;
   artist: string;
   albumArt: string;
-  audioUrl: string;
   duration: number;
-  clipStart: number;
-  clipEnd: number;
   sortOrder: number;
 }
+
+export interface SpotifyTrack extends MusicTrackBase {
+  source: 'spotify';
+  spotifyId: string;
+  spotifyUri: string;
+  previewUrl: string | null;
+}
+
+export interface UploadTrack extends MusicTrackBase {
+  source: 'upload';
+  audioUrl: string;
+  cloudinaryId: string;
+  clipStart: number;
+  clipEnd: number;
+}
+
+export type MusicTrack = SpotifyTrack | UploadTrack;
 
 export interface BackgroundMusicConfig {
   enabled: boolean;
@@ -23,9 +37,15 @@ export function parseMusicConfig(raw: string | null | undefined): BackgroundMusi
   try {
     const parsed = JSON.parse(raw) as BackgroundMusicConfig;
     if (!parsed || typeof parsed !== 'object') return null;
+    // Filter out legacy tracks without a valid source field
+    const tracks = Array.isArray(parsed.tracks)
+      ? parsed.tracks.filter(
+          (t) => t && typeof t === 'object' && (t.source === 'spotify' || t.source === 'upload'),
+        )
+      : [];
     return {
       enabled: parsed.enabled ?? false,
-      tracks: Array.isArray(parsed.tracks) ? parsed.tracks : [],
+      tracks,
       volume: typeof parsed.volume === 'number' ? Math.min(100, Math.max(0, parsed.volume)) : 30,
       loop: parsed.loop ?? true,
     };
@@ -40,13 +60,4 @@ export function serializeMusicConfig(config: BackgroundMusicConfig): string {
 
 export function getDefaultMusicConfig(): BackgroundMusicConfig {
   return { enabled: true, tracks: [], volume: 30, loop: true };
-}
-
-export function isValidJamendoUrl(url: string): boolean {
-  try {
-    const parsed = new URL(url);
-    return parsed.hostname.endsWith('.jamendo.com');
-  } catch {
-    return false;
-  }
 }
