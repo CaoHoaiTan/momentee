@@ -44,6 +44,7 @@ export interface BackgroundMusicState {
 export function useBackgroundMusic(
   config: BackgroundMusicConfig | null,
   slug: string,
+  gateHandledAutoplay = false,
 ): BackgroundMusicState {
   const tracks = config?.enabled ? (config.tracks ?? []) : [];
   const configVolume = config?.volume ?? 30;
@@ -137,8 +138,34 @@ export function useBackgroundMusic(
       }
       stopFade();
       setIsPlaying(false);
-      setNeedsInteraction(false);
-      return;
+
+      // If gate already handled autoplay, no need to show prompt
+      if (gateHandledAutoplay) {
+        setNeedsInteraction(false);
+        return;
+      }
+
+      // Assume autoplay will be blocked — show friendly prompt
+      setNeedsInteraction(true);
+
+      // Listen for Spotify iframe messages to detect successful playback
+      const handleMessage = (event: MessageEvent) => {
+        if (!event.origin?.includes('spotify.com')) return;
+        // Spotify embed posted a message — playback likely started
+        setNeedsInteraction(false);
+        setIsPlaying(true);
+      };
+
+      // Give iframe 4s to auto-play; if no message, keep prompt visible
+      const timer = setTimeout(() => {
+        // After timeout, needsInteraction stays true (user must tap)
+      }, 4000);
+
+      window.addEventListener('message', handleMessage);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('message', handleMessage);
+      };
     }
 
     const cleanup = loadAndPlay(currentTrack, volume, isMuted);
@@ -148,7 +175,7 @@ export function useBackgroundMusic(
       stopFade();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentTrack?.id]);
+  }, [currentTrack?.id, gateHandledAutoplay]);
 
   // Sync volume changes to audio element
   useEffect(() => {

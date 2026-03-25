@@ -172,7 +172,7 @@ export function WelcomeGate({
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.97 }}
               >
-                Enter / Bắt đầu xem
+                Enter & listen together
               </motion.button>
             </motion.div>
           </motion.div>

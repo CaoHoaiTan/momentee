@@ -27,7 +27,7 @@ export function MusicPlayer({ config, slug, hasOwnerNav = false, gateHandledAuto
     setVolume,
     next,
     prev,
-  } = useBackgroundMusic(config, slug);
+  } = useBackgroundMusic(config, slug, gateHandledAutoplay);
 
   if (!currentTrack) return null;
 
@@ -50,8 +50,9 @@ export function MusicPlayer({ config, slug, hasOwnerNav = false, gateHandledAuto
         )}
         <motion.button
           onClick={() => {
-            if (!isSpotify && needsInteraction) {
-              toggle();
+            if (needsInteraction) {
+              if (!isSpotify) toggle();
+              setExpanded(true);
             } else {
               setExpanded(true);
             }
@@ -62,7 +63,7 @@ export function MusicPlayer({ config, slug, hasOwnerNav = false, gateHandledAuto
             border: '1px solid var(--theme-border)',
           }}
           whileTap={{ scale: 0.9 }}
-          title={!isSpotify && needsInteraction ? 'Tap to play music' : 'Music player'}
+          title={needsInteraction ? 'Listen to our song together!' : 'Music player'}
         >
           {currentTrack.albumArt ? (
             <motion.img
@@ -87,8 +88,8 @@ export function MusicPlayer({ config, slug, hasOwnerNav = false, gateHandledAuto
             </svg>
           )}
 
-          {/* Pulse indicator for needsInteraction (upload tracks only) */}
-          {!isSpotify && needsInteraction && (
+          {/* Pulse indicator for needsInteraction */}
+          {needsInteraction && (
             <motion.div
               className="absolute inset-0 rounded-full"
               style={{ border: '2px solid var(--theme-primary)' }}
@@ -98,8 +99,8 @@ export function MusicPlayer({ config, slug, hasOwnerNav = false, gateHandledAuto
           )}
         </motion.button>
 
-        {/* "Tap to play" label */}
-        {!isSpotify && needsInteraction && (
+        {/* Friendly music prompt */}
+        {needsInteraction && (
           <motion.div
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
@@ -110,7 +111,7 @@ export function MusicPlayer({ config, slug, hasOwnerNav = false, gateHandledAuto
               color: 'var(--theme-text)',
             }}
           >
-            Tap to play music
+            Listen to our song together!
           </motion.div>
         )}
       </motion.div>

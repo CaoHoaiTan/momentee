@@ -231,20 +231,24 @@ function SpotifyTab({ onSelect }: { onSelect: (track: MusicTrack) => void }) {
 
       {/* Categories */}
       {!searchQuery && (
-        <div className="flex flex-nowrap gap-2 overflow-x-auto border-b border-gray-100 px-6 py-3 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
-              className={`flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                activeCategory === cat.id
-                  ? 'bg-[var(--color-coral)] text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
+        <div className="border-b border-gray-100">
+          <div className="flex flex-nowrap gap-2 overflow-x-auto py-3 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden">
+            <div className="w-6 flex-shrink-0" aria-hidden="true" />
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                className={`flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                  activeCategory === cat.id
+                    ? 'bg-[var(--color-coral)] text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+            <div className="w-6 flex-shrink-0" aria-hidden="true" />
+          </div>
         </div>
       )}
 
@@ -307,7 +311,7 @@ function SpotifyTab({ onSelect }: { onSelect: (track: MusicTrack) => void }) {
                 {playingId === track.id && (
                   <div className="overflow-hidden rounded-xl">
                     <iframe
-                      src={`https://open.spotify.com/embed/track/${track.id}?utm_source=generator&theme=0`}
+                      src={`https://open.spotify.com/embed/track/${track.id}?utm_source=generator&theme=0&autoplay=1`}
                       width="100%"
                       height={80}
                       frameBorder="0"
