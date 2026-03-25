@@ -44,10 +44,7 @@ export const userResolvers = {
         .selectFrom('couples')
         .selectAll()
         .where((eb) =>
-          eb.or([
-            eb('partner1_id', '=', parent.id),
-            eb('partner2_id', '=', parent.id),
-          ]),
+          eb.or([eb('partner1_id', '=', parent.id), eb('partner2_id', '=', parent.id)]),
         )
         .execute();
     },

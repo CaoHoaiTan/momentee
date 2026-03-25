@@ -39,6 +39,7 @@ export interface BackgroundMusicState {
   setVolume: (v: number) => void;
   next: () => void;
   prev: () => void;
+  dismissInteraction: () => void;
 }
 
 export function useBackgroundMusic(
@@ -233,6 +234,10 @@ export function useBackgroundMusic(
     setTrackIndex((i) => (i - 1 + Math.max(1, tracks.length)) % Math.max(1, tracks.length));
   }, [tracks.length]);
 
+  const dismissInteraction = useCallback(() => {
+    setNeedsInteraction(false);
+  }, []);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -253,5 +258,6 @@ export function useBackgroundMusic(
     setVolume,
     next,
     prev,
+    dismissInteraction,
   };
 }

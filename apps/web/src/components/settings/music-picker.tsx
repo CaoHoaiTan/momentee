@@ -232,8 +232,7 @@ function SpotifyTab({ onSelect }: { onSelect: (track: MusicTrack) => void }) {
       {/* Categories */}
       {!searchQuery && (
         <div className="border-b border-gray-100">
-          <div className="flex flex-nowrap gap-2 overflow-x-auto py-3 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden">
-            <div className="w-6 flex-shrink-0" aria-hidden="true" />
+          <div className="flex flex-nowrap gap-2 overflow-x-auto px-6 py-3 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
@@ -247,7 +246,6 @@ function SpotifyTab({ onSelect }: { onSelect: (track: MusicTrack) => void }) {
                 {cat.label}
               </button>
             ))}
-            <div className="w-6 flex-shrink-0" aria-hidden="true" />
           </div>
         </div>
       )}
