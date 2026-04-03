@@ -3,24 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { MusicTrack } from '../../lib/music-config';
-
-interface SpotifyEmbedController {
-  play(): void;
-  addListener(event: string, callback: (data: unknown) => void): void;
-}
-interface SpotifyIFrameAPI {
-  createController(
-    element: HTMLElement,
-    options: { uri: string; width?: string | number; height?: string | number },
-    callback: (controller: SpotifyEmbedController) => void,
-  ): void;
-}
-declare global {
-  interface Window {
-    onSpotifyIframeApiReady?: (IFrameAPI: SpotifyIFrameAPI) => void;
-    SpotifyIframeApi?: SpotifyIFrameAPI;
-  }
-}
+import { loadSpotifyAndPlay } from '../../lib/spotify-player';
 
 const GATE_KEY = (slug: string) => `momentee_gate_${slug}`;
 
@@ -33,40 +16,6 @@ interface WelcomeGateProps {
   primaryColor: string;
   secondaryColor: string;
   onDismissed: () => void;
-}
-
-function loadSpotifyAndPlay(
-  spotifyId: string,
-  containerRef: React.RefObject<HTMLDivElement | null>,
-) {
-  function create(IFrameAPI: SpotifyIFrameAPI) {
-    if (!containerRef.current) return;
-    IFrameAPI.createController(
-      containerRef.current,
-      { uri: `spotify:track:${spotifyId}`, width: '0', height: '0' },
-      (controller) => {
-        controller.play();
-      },
-    );
-  }
-
-  if (window.SpotifyIframeApi) {
-    create(window.SpotifyIframeApi);
-    return;
-  }
-
-  window.onSpotifyIframeApiReady = (IFrameAPI) => {
-    window.SpotifyIframeApi = IFrameAPI;
-    create(IFrameAPI);
-  };
-
-  if (!document.getElementById('spotify-iframe-api')) {
-    const s = document.createElement('script');
-    s.id = 'spotify-iframe-api';
-    s.src = 'https://open.spotify.com/embed/iframe-api/v1';
-    s.async = true;
-    document.head.appendChild(s);
-  }
 }
 
 export function WelcomeGate({
@@ -84,7 +33,7 @@ export function WelcomeGate({
   // Runs synchronously during hydration, before first paint
   const [shouldShow] = useState<boolean>(() => {
     try {
-      return !localStorage.getItem(GATE_KEY(coupleSlug));
+      return !sessionStorage.getItem(GATE_KEY(coupleSlug));
     } catch {
       return true;
     }
@@ -103,7 +52,7 @@ export function WelcomeGate({
     if (state === 'dismissing') return;
     setState('dismissing');
     try {
-      localStorage.setItem(GATE_KEY(coupleSlug), '1');
+      sessionStorage.setItem(GATE_KEY(coupleSlug), '1');
     } catch {
       /* ignore */
     }

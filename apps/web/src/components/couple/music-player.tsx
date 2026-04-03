@@ -28,6 +28,8 @@ export function MusicPlayer({ config, slug, hasOwnerNav = false, gateHandledAuto
     next,
     prev,
     dismissInteraction,
+    playSpotify,
+    spotifyContainerRef,
   } = useBackgroundMusic(config, slug, gateHandledAutoplay);
 
   if (!currentTrack) return null;
@@ -54,7 +56,11 @@ export function MusicPlayer({ config, slug, hasOwnerNav = false, gateHandledAuto
           <motion.button
             onClick={() => {
               if (needsInteraction) {
-                if (!isSpotify) toggle();
+                if (isSpotify) {
+                  playSpotify();
+                } else {
+                  toggle();
+                }
                 dismissInteraction();
               }
               setExpanded(true);
@@ -105,7 +111,11 @@ export function MusicPlayer({ config, slug, hasOwnerNav = false, gateHandledAuto
           {needsInteraction && (
             <motion.button
               onClick={() => {
-                if (!isSpotify) toggle();
+                if (isSpotify) {
+                  playSpotify();
+                } else {
+                  toggle();
+                }
                 dismissInteraction();
                 setExpanded(true);
               }}
@@ -287,6 +297,13 @@ export function MusicPlayer({ config, slug, hasOwnerNav = false, gateHandledAuto
             </>
           )}
         </motion.div>
+      )}
+      {/* Hidden container for Spotify IFrame API playback */}
+      {isSpotify && (
+        <div
+          ref={spotifyContainerRef}
+          style={{ position: 'fixed', top: -9999, left: -9999, width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none' }}
+        />
       )}
     </motion.div>
   );

@@ -67,7 +67,7 @@ export async function create(userId: string, input: CreateCoupleInput) {
   return couple;
 }
 
-export async function getBySlug(slug: string) {
+export async function getBySlug(slug: string, requestingUserId?: string | null) {
   const couple = await db
     .selectFrom('couples')
     .selectAll()
@@ -76,6 +76,13 @@ export async function getBySlug(slug: string) {
 
   if (!couple) {
     throw NotFoundError('Couple');
+  }
+
+  // Private page: only owners can view
+  if (!couple.is_public) {
+    if (!requestingUserId || (couple.partner1_id !== requestingUserId && couple.partner2_id !== requestingUserId)) {
+      throw NotFoundError('Couple');
+    }
   }
 
   return couple;

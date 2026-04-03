@@ -34,9 +34,9 @@ export const coupleResolvers = {
     couple: async (
       _parent: unknown,
       args: { slug: string },
-      _context: GQLContext,
+      context: GQLContext,
     ) => {
-      return coupleService.getBySlug(args.slug);
+      return coupleService.getBySlug(args.slug, context.user?.userId);
     },
 
     coupleById: async (
