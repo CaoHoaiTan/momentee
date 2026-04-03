@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation } from '@apollo/client/react';
+import { useToast } from '../../../../lib/toast-context';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useCouple } from '../../../../hooks/useCouple';
 import { GET_POSTS } from '../../../../graphql/queries/post.queries';
@@ -21,6 +22,7 @@ export default function PostsPage() {
   const router = useRouter();
   const { isAuthenticated, loading: authLoading } = useAuth();
   const { couple, loading: coupleLoading } = useCouple();
+  const { showError, showSuccess } = useToast();
 
   const [formOpen, setFormOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -44,10 +46,14 @@ export default function PostsPage() {
 
   const [createPost, { loading: creating }] = useMutation(CREATE_POST, {
     refetchQueries: [{ query: GET_POSTS, variables: { coupleId: couple?.id } }],
+    onError: (error) => showError(error.message),
+    onCompleted: () => showSuccess('Post created!'),
   });
 
   const [deletePost, { loading: deleting }] = useMutation(DELETE_POST, {
     refetchQueries: [{ query: GET_POSTS, variables: { coupleId: couple?.id } }],
+    onError: (error) => showError(error.message),
+    onCompleted: () => showSuccess('Post deleted'),
   });
 
   if (authLoading || coupleLoading) {

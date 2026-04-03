@@ -10,7 +10,7 @@ export const billingResolvers = {
       context: GQLContext,
     ) => {
       requireAuth(context);
-      return billingService.getSubscription(args.coupleId);
+      return billingService.getSubscription(args.coupleId, context.user.userId);
     },
 
     checkPlanLimit: async (
@@ -22,6 +22,7 @@ export const billingResolvers = {
       return billingService.checkPlanLimit(
         args.coupleId,
         args.feature as 'milestones' | 'posts' | 'albums' | 'media_per_post',
+        context.user.userId,
       );
     },
   },

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation } from '@apollo/client/react';
+import { useToast } from '../../../../lib/toast-context';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useCouple } from '../../../../hooks/useCouple';
 import { GET_QUIZZES, GET_QUIZ_LEADERBOARD } from '../../../../graphql/queries/quiz.queries';
@@ -30,6 +31,7 @@ export default function QuizPage() {
   const router = useRouter();
   const { isAuthenticated, loading: authLoading } = useAuth();
   const { couple, loading: coupleLoading } = useCouple();
+  const { showError, showSuccess } = useToast();
 
   const [formOpen, setFormOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -65,10 +67,14 @@ export default function QuizPage() {
 
   const [createQuiz, { loading: creating }] = useMutation(CREATE_QUIZ, {
     refetchQueries: [{ query: GET_QUIZZES, variables: { coupleId: couple?.id } }],
+    onError: (error) => showError(error.message),
+    onCompleted: () => showSuccess('Quiz created!'),
   });
 
   const [deleteQuiz, { loading: deleting }] = useMutation(DELETE_QUIZ, {
     refetchQueries: [{ query: GET_QUIZZES, variables: { coupleId: couple?.id } }],
+    onError: (error) => showError(error.message),
+    onCompleted: () => showSuccess('Quiz deleted'),
   });
 
   if (authLoading || coupleLoading) {

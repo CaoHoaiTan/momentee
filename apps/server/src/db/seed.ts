@@ -6,7 +6,7 @@ async function seed() {
   try {
     console.log('Seeding database...');
 
-    const hashedPassword = await bcrypt.hash('password123', 10);
+    const hashedPassword = await bcrypt.hash('Password123', 10);
 
     // ─── Users ─────────────────────────────────────────────────────────
     const userIds = {

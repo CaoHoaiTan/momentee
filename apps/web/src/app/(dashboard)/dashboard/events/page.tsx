@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation } from '@apollo/client/react';
+import { useToast } from '../../../../lib/toast-context';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useCouple } from '../../../../hooks/useCouple';
 import { GET_EVENTS } from '../../../../graphql/queries/event.queries';
@@ -30,6 +31,7 @@ export default function EventsPage() {
   const router = useRouter();
   const { isAuthenticated, loading: authLoading } = useAuth();
   const { couple, loading: coupleLoading } = useCouple();
+  const { showError, showSuccess } = useToast();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<EventData | null>(null);
@@ -49,9 +51,9 @@ export default function EventsPage() {
   });
 
   const refetchConfig = { refetchQueries: [{ query: GET_EVENTS, variables: { coupleId: couple?.id } }] };
-  const [createEvent, { loading: creating }] = useMutation(CREATE_EVENT, refetchConfig);
-  const [updateEvent, { loading: updating }] = useMutation(UPDATE_EVENT, refetchConfig);
-  const [deleteEvent, { loading: deleting }] = useMutation(DELETE_EVENT, refetchConfig);
+  const [createEvent, { loading: creating }] = useMutation(CREATE_EVENT, { ...refetchConfig, onError: (error) => showError(error.message), onCompleted: () => showSuccess('Event created!') });
+  const [updateEvent, { loading: updating }] = useMutation(UPDATE_EVENT, { ...refetchConfig, onError: (error) => showError(error.message), onCompleted: () => showSuccess('Event updated!') });
+  const [deleteEvent, { loading: deleting }] = useMutation(DELETE_EVENT, { ...refetchConfig, onError: (error) => showError(error.message), onCompleted: () => showSuccess('Event deleted') });
 
   if (authLoading || coupleLoading) {
     return <div className="flex min-h-[50vh] items-center justify-center"><LoadingSpinner size="lg" /></div>;

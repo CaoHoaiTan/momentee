@@ -26,6 +26,7 @@ export default function OnboardingPage() {
 
   const [createCouple, { loading: creating }] = useMutation(CREATE_COUPLE, {
     refetchQueries: [{ query: GET_MY_COUPLE }],
+    onError: (error) => setError(error.message),
   });
 
   useEffect(() => {

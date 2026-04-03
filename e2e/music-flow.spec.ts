@@ -316,7 +316,7 @@ test.describe('GraphQL API — backgroundMusic CRUD', () => {
 
   test.beforeAll(async () => {
     const email = `e2e-music-api-${uniqueSuffix}@test.dev`;
-    const auth = await registerUser(email, 'password123', 'Music API User');
+    const auth = await registerUser(email, 'Password123', 'Music API User');
     accessToken = auth.accessToken;
     const couple = await createCoupleAPI(
       accessToken,
@@ -445,7 +445,7 @@ test.describe('GraphQL API — backgroundMusic CRUD', () => {
     const freeEmail = `e2e-music-free-${uniqueSuffix}@test.dev`;
     const freeAuth = await registerUser(
       freeEmail,
-      'password123',
+      'Password123',
       'Free Music User',
     );
     const freeCouple = await createCoupleAPI(
@@ -523,7 +523,7 @@ test.describe('REST API — /api/music routes', () => {
 
   test.beforeAll(async () => {
     const email = `e2e-music-rest-${uniqueSuffix}@test.dev`;
-    const auth = await registerUser(email, 'password123', 'Music REST User');
+    const auth = await registerUser(email, 'Password123', 'Music REST User');
     accessToken = auth.accessToken;
   });
 
@@ -577,7 +577,7 @@ test.describe('Frontend — Music Settings in Dashboard', () => {
   let accessToken: string;
   let coupleId: string;
   const email = `e2e-music-ui-${uniqueSuffix}@test.dev`;
-  const password = 'password123';
+  const password = 'Password123';
 
   test.beforeAll(async () => {
     const auth = await registerUser(email, password, 'Music UI User');
@@ -704,7 +704,7 @@ test.describe('Frontend — Music Player on Public Page', () => {
   let coupleId: string;
   let coupleSlug: string;
   const email = `e2e-music-player-${uniqueSuffix}@test.dev`;
-  const password = 'password123';
+  const password = 'Password123';
 
   test.beforeAll(async () => {
     const auth = await registerUser(email, password, 'Music Player User');
@@ -722,7 +722,7 @@ test.describe('Frontend — Music Player on Public Page', () => {
     const noMusicEmail = `e2e-no-music-${uniqueSuffix}@test.dev`;
     const noMusicAuth = await registerUser(
       noMusicEmail,
-      'password123',
+      'Password123',
       'No Music User',
     );
     const noMusicCouple = await createCoupleAPI(
@@ -846,7 +846,7 @@ test.describe('Frontend — Music Search in Picker', () => {
   let accessToken: string;
   let coupleId: string;
   const email = `e2e-music-search-${uniqueSuffix}@test.dev`;
-  const password = 'password123';
+  const password = 'Password123';
 
   const MOCK_SPOTIFY_RESULTS = [
     {
@@ -982,7 +982,7 @@ test.describe('Frontend — Welcome Gate', () => {
   let coupleId: string;
   let coupleSlug: string;
   const email = `e2e-music-gate-${uniqueSuffix}@test.dev`;
-  const password = 'password123';
+  const password = 'Password123';
 
   test.beforeAll(async () => {
     const auth = await registerUser(email, password, 'Gate User');

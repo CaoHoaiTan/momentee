@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation } from '@apollo/client/react';
+import { useToast } from '../../../../lib/toast-context';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useCouple } from '../../../../hooks/useCouple';
 import { GET_MILESTONES } from '../../../../graphql/queries/milestone.queries';
@@ -33,6 +34,7 @@ export default function MilestonesPage() {
   const router = useRouter();
   const { isAuthenticated, loading: authLoading } = useAuth();
   const { couple, loading: coupleLoading } = useCouple();
+  const { showError, showSuccess } = useToast();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState<MilestoneData | null>(null);
@@ -59,14 +61,20 @@ export default function MilestonesPage() {
 
   const [createMilestone, { loading: creating }] = useMutation(CREATE_MILESTONE, {
     refetchQueries: [{ query: GET_MILESTONES, variables: { coupleId: couple?.id } }],
+    onError: (error) => showError(error.message),
+    onCompleted: () => showSuccess('Milestone created!'),
   });
 
   const [updateMilestone, { loading: updating }] = useMutation(UPDATE_MILESTONE, {
     refetchQueries: [{ query: GET_MILESTONES, variables: { coupleId: couple?.id } }],
+    onError: (error) => showError(error.message),
+    onCompleted: () => showSuccess('Milestone updated!'),
   });
 
   const [deleteMilestone, { loading: deleting }] = useMutation(DELETE_MILESTONE, {
     refetchQueries: [{ query: GET_MILESTONES, variables: { coupleId: couple?.id } }],
+    onError: (error) => showError(error.message),
+    onCompleted: () => showSuccess('Milestone deleted'),
   });
 
   if (authLoading || coupleLoading) {

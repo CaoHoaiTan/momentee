@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation } from '@apollo/client/react';
+import { useToast } from '../../../../lib/toast-context';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useCouple } from '../../../../hooks/useCouple';
 import { GET_GIFT_ACCOUNTS } from '../../../../graphql/queries/gift.queries';
@@ -29,6 +30,7 @@ export default function GiftPage() {
   const router = useRouter();
   const { isAuthenticated, loading: authLoading } = useAuth();
   const { couple, loading: coupleLoading } = useCouple();
+  const { showError, showSuccess } = useToast();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editAccount, setEditAccount] = useState<GiftAccountData | null>(null);
@@ -55,9 +57,9 @@ export default function GiftPage() {
   });
 
   const refetchConfig = { refetchQueries: [{ query: GET_GIFT_ACCOUNTS, variables: { coupleId: couple?.id } }] };
-  const [createGift, { loading: creating }] = useMutation(CREATE_GIFT_ACCOUNT, refetchConfig);
-  const [updateGift, { loading: updating }] = useMutation(UPDATE_GIFT_ACCOUNT, refetchConfig);
-  const [deleteGift, { loading: deleting }] = useMutation(DELETE_GIFT_ACCOUNT, refetchConfig);
+  const [createGift, { loading: creating }] = useMutation(CREATE_GIFT_ACCOUNT, { ...refetchConfig, onError: (error) => showError(error.message), onCompleted: () => showSuccess('Gift account added!') });
+  const [updateGift, { loading: updating }] = useMutation(UPDATE_GIFT_ACCOUNT, { ...refetchConfig, onError: (error) => showError(error.message), onCompleted: () => showSuccess('Gift account updated!') });
+  const [deleteGift, { loading: deleting }] = useMutation(DELETE_GIFT_ACCOUNT, { ...refetchConfig, onError: (error) => showError(error.message), onCompleted: () => showSuccess('Gift account deleted') });
 
   if (authLoading || coupleLoading) {
     return <div className="flex min-h-[50vh] items-center justify-center"><LoadingSpinner size="lg" /></div>;

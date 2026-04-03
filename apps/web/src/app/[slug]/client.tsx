@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation } from '@apollo/client/react';
+import { useToast } from '../../lib/toast-context';
 import { useAuth } from '../../hooks/useAuth';
 import { INCREMENT_VIEW_COUNT } from '../../graphql/mutations/couple.mutations';
 import { GET_MILESTONES } from '../../graphql/queries/milestone.queries';
@@ -290,6 +291,7 @@ function AlbumSection({ albums, galleryMode }: { albums: { id: string; title: st
 
 export function CouplePageClient({ couple }: { couple: CoupleData }) {
   const { user, isAuthenticated } = useAuth();
+  const { showError, showSuccess } = useToast();
   const isOwner = isAuthenticated && user && (
     user.id === couple.partner1.id || user.id === couple.partner2?.id
   );
@@ -314,6 +316,8 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
   const [incrementView] = useMutation(INCREMENT_VIEW_COUNT);
   const [createWish, { loading: creatingWish }] = useMutation(CREATE_WISH, {
     refetchQueries: [{ query: GET_WISHES, variables: { coupleId: couple.id, limit: 50 } }],
+    onError: (error) => showError(error.message),
+    onCompleted: () => showSuccess('Wish sent!'),
   });
 
   const { data: wishesData } = useQuery<{ wishes: WishData[] }>(GET_WISHES, {
@@ -346,7 +350,10 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
     variables: { coupleId: couple.id },
   });
 
-  const [createRsvp, { loading: creatingRsvp }] = useMutation(CREATE_RSVP);
+  const [createRsvp, { loading: creatingRsvp }] = useMutation(CREATE_RSVP, {
+    onError: (error) => showError(error.message),
+    onCompleted: () => showSuccess('RSVP submitted!'),
+  });
 
   const { data: giftData } = useQuery<{
     giftAccounts: {

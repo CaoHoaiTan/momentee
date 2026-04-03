@@ -98,7 +98,7 @@ test.describe('GraphQL API — Couple operations', () => {
 
   test('register fresh user and create couple', async () => {
     const email = `e2e-creator-${uniqueSuffix}@test.dev`;
-    const auth = await registerUser(email, 'password123', 'Creator User');
+    const auth = await registerUser(email, 'Password123', 'Creator User');
     expect(auth.user.email).toBe(email);
     accessToken = auth.accessToken;
 
@@ -190,7 +190,7 @@ test.describe('GraphQL API — Couple operations', () => {
     const partnerEmail = `e2e-partner-${uniqueSuffix}@test.dev`;
     const partnerAuth = await registerUser(
       partnerEmail,
-      'password123',
+      'Password123',
       'Partner User',
     );
 
@@ -245,7 +245,7 @@ test.describe('GraphQL API — Couple operations', () => {
 
 test.describe('Frontend — Onboarding wizard', () => {
   const email = `e2e-onboard-${uniqueSuffix}@test.dev`;
-  const password = 'password123';
+  const password = 'Password123';
 
   test.beforeAll(async () => {
     await registerUser(email, password, 'Onboard User');
@@ -303,7 +303,7 @@ test.describe('Frontend — Onboarding wizard', () => {
 
 test.describe('Frontend — Dashboard', () => {
   const email = `e2e-dash-${uniqueSuffix}@test.dev`;
-  const password = 'password123';
+  const password = 'Password123';
 
   test.beforeAll(async () => {
     const auth = await registerUser(email, password, 'Dashboard User');
@@ -344,7 +344,7 @@ test.describe('Frontend — Public couple page', () => {
 
   test.beforeAll(async () => {
     const email = `e2e-public-${uniqueSuffix}@test.dev`;
-    const auth = await registerUser(email, 'password123', 'Public Test');
+    const auth = await registerUser(email, 'Password123', 'Public Test');
     const couple = await createCoupleAPI(
       auth.accessToken,
       `Public Page Test ${uniqueSuffix}`,
@@ -368,9 +368,9 @@ test.describe('Frontend — Public couple page', () => {
     await expect(page.getByText('Photos').first()).toBeVisible();
     await expect(page.getByText('Views').first()).toBeVisible();
 
-    // Share button
+    // Share links
     await expect(
-      page.getByRole('button', { name: 'Share' }),
+      page.getByRole('link', { name: 'Share on WhatsApp' }),
     ).toBeVisible();
 
     // Wishes section
@@ -389,7 +389,7 @@ test.describe('Frontend — Public couple page', () => {
 
 test.describe('Frontend — Settings', () => {
   const email = `e2e-settings-${uniqueSuffix}@test.dev`;
-  const password = 'password123';
+  const password = 'Password123';
 
   test.beforeAll(async () => {
     const auth = await registerUser(email, password, 'Settings User');
@@ -423,14 +423,20 @@ test.describe('Frontend — Settings', () => {
     // Theme selector
     await expect(page.getByText('Page Theme')).toBeVisible();
 
-    // Privacy toggle
-    await expect(page.getByText('Public Page')).toBeVisible();
+    // Privacy toggle (scroll into view first — it's below the fold)
+    const publicPageText = page.getByText('Public Page').first();
+    await publicPageText.scrollIntoViewIfNeeded();
+    await expect(publicPageText).toBeVisible();
 
     // Invite section (no partner2)
-    await expect(page.getByText('Invite Partner')).toBeVisible();
+    const inviteText = page.getByText('Invite Partner');
+    await inviteText.scrollIntoViewIfNeeded();
+    await expect(inviteText).toBeVisible();
 
     // Danger zone
-    await expect(page.getByText('Danger Zone')).toBeVisible();
+    const dangerText = page.getByText('Danger Zone');
+    await dangerText.scrollIntoViewIfNeeded();
+    await expect(dangerText).toBeVisible();
   });
 
   test('updates couple settings', async ({ page }) => {
@@ -474,7 +480,7 @@ test.describe('GraphQL API — Milestone operations', () => {
 
   test.beforeAll(async () => {
     const email = `e2e-ms-api-${uniqueSuffix}@test.dev`;
-    const auth = await registerUser(email, 'password123', 'Milestone API User');
+    const auth = await registerUser(email, 'Password123', 'Milestone API User');
     accessToken = auth.accessToken;
     const couple = await createCoupleAPI(
       accessToken,
@@ -639,7 +645,7 @@ test.describe('GraphQL API — Milestone operations', () => {
     const otherEmail = `e2e-ms-other-${uniqueSuffix}@test.dev`;
     const otherAuth = await registerUser(
       otherEmail,
-      'password123',
+      'Password123',
       'Other User',
     );
 
@@ -669,7 +675,7 @@ test.describe('GraphQL API — Milestone operations', () => {
 
 test.describe('Frontend — Milestones page', () => {
   const email = `e2e-ms-ui-${uniqueSuffix}@test.dev`;
-  const password = 'password123';
+  const password = 'Password123';
 
   test.beforeAll(async () => {
     const auth = await registerUser(email, password, 'Milestone UI User');
@@ -790,7 +796,7 @@ test.describe('Frontend — Public page timeline', () => {
 
   test.beforeAll(async () => {
     const email = `e2e-ms-pub-${uniqueSuffix}@test.dev`;
-    const auth = await registerUser(email, 'password123', 'Public MS User');
+    const auth = await registerUser(email, 'Password123', 'Public MS User');
     const couple = await createCoupleAPI(
       auth.accessToken,
       `Public MS Test ${uniqueSuffix}`,

@@ -47,6 +47,7 @@ export function NotificationBell() {
 
   const [markRead] = useMutation(MARK_NOTIFICATIONS_READ, {
     refetchQueries: [{ query: GET_UNREAD_COUNT }],
+    onError: () => {},
   });
 
   useEffect(() => {

@@ -2,7 +2,7 @@ import { ColumnType } from 'kysely';
 
 // ─── Timestamp helpers ───────────────────────────────────────────────
 type Created = ColumnType<Date, string | undefined, never>;
-type Updated = ColumnType<Date, string | undefined, never>;
+type Updated = ColumnType<Date, string | undefined, string | Date>;
 
 // ─── Users ───────────────────────────────────────────────────────────
 export interface UsersTable {

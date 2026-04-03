@@ -13,6 +13,7 @@ import {
 import './globals.css';
 import { ApolloProvider } from '../lib/apollo-provider';
 import { AuthProvider } from '../lib/auth-context';
+import { ToastProvider } from '../lib/toast-context';
 
 const outfit = Outfit({
   variable: '--font-outfit',
@@ -84,7 +85,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col font-sans">
         <ApolloProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </AuthProvider>
         </ApolloProvider>
       </body>
     </html>

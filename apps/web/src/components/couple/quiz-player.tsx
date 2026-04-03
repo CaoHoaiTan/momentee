@@ -61,7 +61,9 @@ export function QuizPlayer({ quizzes, coupleId }: QuizPlayerProps) {
     },
   );
 
-  const [submitQuiz, { loading: submitting }] = useMutation<SubmitResult>(SUBMIT_QUIZ);
+  const [submitQuiz, { loading: submitting }] = useMutation<SubmitResult>(SUBMIT_QUIZ, {
+    onError: (error) => setSubmitError(error.message),
+  });
 
   const questions = quizData?.quiz?.questions ?? [];
   const allAnswered = questions.length > 0 && questions.every((q) => answers[q.id] !== undefined);

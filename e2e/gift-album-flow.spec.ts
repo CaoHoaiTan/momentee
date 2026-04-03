@@ -185,7 +185,7 @@ test.describe('GraphQL API — Gift Account CRUD', () => {
 
   test.beforeAll(async () => {
     const email = `e2e-gift-api-${uniqueSuffix}@test.dev`;
-    const auth = await registerUser(email, 'password123', 'Gift API User');
+    const auth = await registerUser(email, 'Password123', 'Gift API User');
     accessToken = auth.accessToken;
     const couple = await createCoupleAPI(
       accessToken,
@@ -333,7 +333,7 @@ test.describe('GraphQL API — Gift Account CRUD', () => {
     const otherEmail = `e2e-gift-other-${uniqueSuffix}@test.dev`;
     const otherAuth = await registerUser(
       otherEmail,
-      'password123',
+      'Password123',
       'Other Gift User',
     );
 
@@ -370,7 +370,7 @@ test.describe('GraphQL API — Album CRUD', () => {
 
   test.beforeAll(async () => {
     const email = `e2e-album-api-${uniqueSuffix}@test.dev`;
-    const auth = await registerUser(email, 'password123', 'Album API User');
+    const auth = await registerUser(email, 'Password123', 'Album API User');
     accessToken = auth.accessToken;
     const couple = await createCoupleAPI(
       accessToken,
@@ -630,7 +630,7 @@ test.describe('GraphQL API — Album CRUD', () => {
     const otherEmail = `e2e-album-other-${uniqueSuffix}@test.dev`;
     const otherAuth = await registerUser(
       otherEmail,
-      'password123',
+      'Password123',
       'Other Album User',
     );
 
@@ -664,7 +664,7 @@ test.describe('GraphQL API — Album plan limits', () => {
 
   test.beforeAll(async () => {
     const email = `e2e-album-limit-${uniqueSuffix}@test.dev`;
-    const auth = await registerUser(email, 'password123', 'Album Limit User');
+    const auth = await registerUser(email, 'Password123', 'Album Limit User');
     accessToken = auth.accessToken;
     const couple = await createCoupleAPI(
       accessToken,
@@ -711,7 +711,7 @@ test.describe('GraphQL API — Album plan limits', () => {
 
 test.describe('Frontend — Gift Dashboard page', () => {
   const email = `e2e-gift-ui-${uniqueSuffix}@test.dev`;
-  const password = 'password123';
+  const password = 'Password123';
 
   test.beforeAll(async () => {
     const auth = await registerUser(email, password, 'Gift UI User');
@@ -819,7 +819,7 @@ test.describe('Frontend — Gift Dashboard page', () => {
 
 test.describe('Frontend — Album Dashboard page', () => {
   const email = `e2e-album-ui-${uniqueSuffix}@test.dev`;
-  const password = 'password123';
+  const password = 'Password123';
 
   test.beforeAll(async () => {
     const auth = await registerUser(email, password, 'Album UI User');
@@ -994,7 +994,7 @@ test.describe('Frontend — Gift on Public page', () => {
 
   test.beforeAll(async () => {
     const email = `e2e-gift-pub-${uniqueSuffix}@test.dev`;
-    const auth = await registerUser(email, 'password123', 'Gift Public User');
+    const auth = await registerUser(email, 'Password123', 'Gift Public User');
     const couple = await createCoupleAPI(
       auth.accessToken,
       `Gift Public Test ${uniqueSuffix}`,
@@ -1067,7 +1067,7 @@ test.describe('Frontend — Albums on Public page', () => {
 
   test.beforeAll(async () => {
     const email = `e2e-album-pub-${uniqueSuffix}@test.dev`;
-    const auth = await registerUser(email, 'password123', 'Album Public User');
+    const auth = await registerUser(email, 'Password123', 'Album Public User');
     const couple = await createCoupleAPI(
       auth.accessToken,
       `Album Public Test ${uniqueSuffix}`,
@@ -1149,7 +1149,7 @@ test.describe('Frontend — Public page with no gifts/albums', () => {
 
   test.beforeAll(async () => {
     const email = `e2e-empty-pub-${uniqueSuffix}@test.dev`;
-    const auth = await registerUser(email, 'password123', 'Empty Public User');
+    const auth = await registerUser(email, 'Password123', 'Empty Public User');
     const couple = await createCoupleAPI(
       auth.accessToken,
       `Empty Public Test ${uniqueSuffix}`,

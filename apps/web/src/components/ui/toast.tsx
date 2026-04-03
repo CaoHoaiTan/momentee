@@ -30,7 +30,7 @@ export function Toast({ message, type = 'info', onClose }: ToastProps) {
         initial={{ opacity: 0, y: -20, x: 20 }}
         animate={{ opacity: 1, y: 0, x: 0 }}
         exit={{ opacity: 0, y: -20, x: 20 }}
-        className={`fixed top-4 right-4 z-50 flex items-center gap-3 rounded-xl px-5 py-3 shadow-lg ${typeStyles[type]}`}
+        className={`flex items-center gap-3 rounded-xl px-5 py-3 shadow-lg ${typeStyles[type]}`}
       >
         <span className="text-lg">{typeIcons[type]}</span>
         <p className="text-sm font-medium">{message}</p>

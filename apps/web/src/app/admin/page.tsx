@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation } from '@apollo/client/react';
+import { useToast } from '../../lib/toast-context';
 import { useAuth } from '../../hooks/useAuth';
 import { GET_ADMIN_STATS, GET_ADMIN_USERS, GET_ADMIN_COUPLES } from '../../graphql/queries/admin.queries';
 import { ADMIN_DELETE_USER, ADMIN_DELETE_COUPLE, ADMIN_UPDATE_USER_ROLE } from '../../graphql/mutations/admin.mutations';
@@ -41,6 +42,7 @@ interface CoupleData {
 export default function AdminPage() {
   const router = useRouter();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const { showError, showSuccess } = useToast();
   const [tab, setTab] = useState<'overview' | 'users' | 'couples'>('overview');
   const [search, setSearch] = useState('');
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
@@ -68,14 +70,20 @@ export default function AdminPage() {
 
   const [deleteUser, { loading: deletingUser }] = useMutation(ADMIN_DELETE_USER, {
     refetchQueries: [{ query: GET_ADMIN_USERS, variables: { limit: 50, search: search || undefined } }, { query: GET_ADMIN_STATS }],
+    onError: (error) => showError(error.message),
+    onCompleted: () => showSuccess('User deleted'),
   });
 
   const [deleteCouple, { loading: deletingCouple }] = useMutation(ADMIN_DELETE_COUPLE, {
     refetchQueries: [{ query: GET_ADMIN_COUPLES, variables: { limit: 50, search: search || undefined } }, { query: GET_ADMIN_STATS }],
+    onError: (error) => showError(error.message),
+    onCompleted: () => showSuccess('Couple deleted'),
   });
 
   const [updateRole] = useMutation(ADMIN_UPDATE_USER_ROLE, {
     refetchQueries: [{ query: GET_ADMIN_USERS, variables: { limit: 50, search: search || undefined } }],
+    onError: (error) => showError(error.message),
+    onCompleted: () => showSuccess('Role updated'),
   });
 
   if (authLoading) {

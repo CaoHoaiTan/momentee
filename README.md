@@ -163,11 +163,11 @@ Open your browser:
 
 | Email | Password | Notes |
 |-------|----------|-------|
-| test1@momentee.dev | password123 | Has couple page |
-| test2@momentee.dev | password123 | Partner of test1 |
-| test3@momentee.dev | password123 | Has couple page |
-| test4@momentee.dev | password123 | |
-| test5@momentee.dev | password123 | |
+| test1@momentee.dev | Password123 | Has couple page |
+| test2@momentee.dev | Password123 | Partner of test1 |
+| test3@momentee.dev | Password123 | Has couple page |
+| test4@momentee.dev | Password123 | |
+| test5@momentee.dev | Password123 | |
 
 ---
 

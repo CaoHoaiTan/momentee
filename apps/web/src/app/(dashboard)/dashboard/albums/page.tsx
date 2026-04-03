@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation } from '@apollo/client/react';
+import { useToast } from '../../../../lib/toast-context';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useCouple } from '../../../../hooks/useCouple';
 import { GET_ALBUMS } from '../../../../graphql/queries/album.queries';
@@ -44,6 +45,7 @@ export default function AlbumsPage() {
   const router = useRouter();
   const { isAuthenticated, loading: authLoading } = useAuth();
   const { couple, loading: coupleLoading } = useCouple();
+  const { showError, showSuccess } = useToast();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editAlbum, setEditAlbum] = useState<AlbumData | null>(null);
@@ -74,11 +76,11 @@ export default function AlbumsPage() {
   });
 
   const refetchConfig = { refetchQueries: [{ query: GET_ALBUMS, variables: { coupleId: couple?.id } }] };
-  const [createAlbum, { loading: creating }] = useMutation(CREATE_ALBUM, refetchConfig);
-  const [updateAlbum, { loading: updating }] = useMutation(UPDATE_ALBUM, refetchConfig);
-  const [deleteAlbum, { loading: deletingAlbum }] = useMutation(DELETE_ALBUM, refetchConfig);
-  const [addPhoto] = useMutation(ADD_ALBUM_PHOTO, refetchConfig);
-  const [removePhoto, { loading: deletingPhoto }] = useMutation(REMOVE_ALBUM_PHOTO, refetchConfig);
+  const [createAlbum, { loading: creating }] = useMutation(CREATE_ALBUM, { ...refetchConfig, onError: (error) => showError(error.message), onCompleted: () => showSuccess('Album created!') });
+  const [updateAlbum, { loading: updating }] = useMutation(UPDATE_ALBUM, { ...refetchConfig, onError: (error) => showError(error.message), onCompleted: () => showSuccess('Album updated!') });
+  const [deleteAlbum, { loading: deletingAlbum }] = useMutation(DELETE_ALBUM, { ...refetchConfig, onError: (error) => showError(error.message), onCompleted: () => showSuccess('Album deleted') });
+  const [addPhoto] = useMutation(ADD_ALBUM_PHOTO, { ...refetchConfig, onError: (error) => showError(error.message) });
+  const [removePhoto, { loading: deletingPhoto }] = useMutation(REMOVE_ALBUM_PHOTO, { ...refetchConfig, onError: (error) => showError(error.message) });
 
   if (authLoading || coupleLoading) {
     return <div className="flex min-h-[50vh] items-center justify-center"><LoadingSpinner size="lg" /></div>;

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation } from '@apollo/client/react';
+import { useToast } from '../../../../lib/toast-context';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useCouple } from '../../../../hooks/useCouple';
 import { GET_WISHES } from '../../../../graphql/queries/wish.queries';
@@ -16,6 +17,7 @@ export default function WishesPage() {
   const router = useRouter();
   const { isAuthenticated, loading: authLoading } = useAuth();
   const { couple, loading: coupleLoading } = useCouple();
+  const { showError, showSuccess } = useToast();
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -38,6 +40,8 @@ export default function WishesPage() {
 
   const [deleteWish, { loading: deleting }] = useMutation(DELETE_WISH, {
     refetchQueries: [{ query: GET_WISHES, variables: { coupleId: couple?.id, limit: 100 } }],
+    onError: (error) => showError(error.message),
+    onCompleted: () => showSuccess('Wish deleted'),
   });
 
   if (authLoading || coupleLoading) {

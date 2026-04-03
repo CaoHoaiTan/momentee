@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation } from '@apollo/client/react';
+import { useToast } from '../../../../lib/toast-context';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useCouple } from '../../../../hooks/useCouple';
 import { UPDATE_COUPLE, DELETE_COUPLE } from '../../../../graphql/mutations/couple.mutations';
@@ -27,6 +28,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const { isAuthenticated, loading: authLoading } = useAuth();
   const { couple, loading: coupleLoading, refetch } = useCouple();
+  const { showError } = useToast();
 
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
@@ -51,9 +53,12 @@ export default function SettingsPage() {
 
   const [updateCouple, { loading: updating }] = useMutation(UPDATE_COUPLE, {
     refetchQueries: [{ query: GET_MY_COUPLE }],
+    onError: (error) => showError(error.message),
   });
 
-  const [deleteCouple, { loading: deleting }] = useMutation(DELETE_COUPLE);
+  const [deleteCouple, { loading: deleting }] = useMutation(DELETE_COUPLE, {
+    onError: (error) => showError(error.message),
+  });
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { useMutation, useQuery } from '@apollo/client/react';
+import { useMutation, useQuery, useApolloClient } from '@apollo/client/react';
 import { LOGIN_MUTATION, REGISTER_MUTATION, LOGOUT_MUTATION } from '../graphql/mutations/auth.mutations';
 import { ME_QUERY } from '../graphql/queries/user.queries';
 
@@ -48,6 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [hasToken, setHasToken] = useState(false);
 
+  const client = useApolloClient();
   const [loginMutation] = useMutation<LoginData>(LOGIN_MUTATION);
   const [registerMutation] = useMutation<RegisterData>(REGISTER_MUTATION);
   const [logoutMutation] = useMutation(LOGOUT_MUTATION);
@@ -111,7 +112,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('momentee_access_token');
     localStorage.removeItem('momentee_refresh_token');
     setUser(null);
-  }, [logoutMutation]);
+    client.resetStore().catch(() => {});
+  }, [logoutMutation, client]);
 
   const isAuthenticated = !!user;
 

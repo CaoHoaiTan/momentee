@@ -9,7 +9,10 @@ import { PLAN_LIMITS } from '@momentee/shared';
 export async function checkPlanLimit(
   coupleId: string,
   feature: keyof (typeof PLAN_LIMITS)['free'],
+  userId?: string,
 ): Promise<{ allowed: boolean; current: number; limit: number }> {
+  if (userId) await verifyCoupleOwnership(coupleId, userId);
+
   const couple = await db
     .selectFrom('couples')
     .select('plan')
@@ -74,7 +77,9 @@ export function enforcePlanLimit(
 
 // ─── Subscription management ────────────────────────────────────────
 
-export async function getSubscription(coupleId: string) {
+export async function getSubscription(coupleId: string, userId?: string) {
+  if (userId) await verifyCoupleOwnership(coupleId, userId);
+
   return db
     .selectFrom('subscriptions')
     .selectAll()
@@ -127,7 +132,9 @@ export async function upgradePlan(
     .executeTakeFirstOrThrow();
 }
 
-export async function downgradePlan(coupleId: string) {
+export async function downgradePlan(coupleId: string, userId?: string) {
+  if (userId) await verifyCoupleOwnership(coupleId, userId);
+
   const sub = await getSubscription(coupleId);
   if (!sub) return;
 
