@@ -90,12 +90,14 @@ export async function getById(id: string) {
   return album;
 }
 
-export async function listByCoupleId(coupleId: string) {
+export async function listByCoupleId(coupleId: string, limit = 50, offset = 0) {
   return db
     .selectFrom('albums')
     .selectAll()
     .where('couple_id', '=', coupleId)
     .orderBy('created_at', 'desc')
+    .limit(limit)
+    .offset(offset)
     .execute();
 }
 

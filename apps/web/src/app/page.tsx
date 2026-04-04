@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
+import { useAuth } from '../hooks/useAuth';
+import { Navbar } from '../components/layout/navbar';
 
 const FEATURES = [
   {
@@ -49,67 +51,11 @@ const STEPS = [
 ];
 
 export default function Home() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   return (
     <div className="min-h-screen overflow-hidden">
-      {/* Navbar */}
-      <nav className="sticky top-0 z-40 border-b border-gray-100 bg-white/80 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/"><img src="/momentee_logo/momentee-logo-primary.svg" alt="Momentee" className="h-8" /></Link>
-          <div className="hidden items-center gap-6 md:flex">
-            <Link href="/explore" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">Explore</Link>
-            <Link href="/pricing" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">Pricing</Link>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/login" className="hidden text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors md:block">Login</Link>
-            <Link
-              href="/register"
-              className="hidden rounded-full bg-[var(--color-coral)] px-5 py-2 text-sm font-semibold text-white transition-all hover:bg-[var(--color-coral-dark)] hover:shadow-lg hover:shadow-[var(--color-coral)]/25 md:block"
-            >
-              Get Started Free
-            </Link>
-            {/* Mobile Hamburger */}
-            <button
-              className="flex items-center md:hidden"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Toggle menu"
-            >
-              <svg className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                {mobileMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
-            </button>
-          </div>
-        </div>
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="border-t border-gray-100 bg-white px-4 py-4 md:hidden">
-            <div className="flex flex-col gap-3">
-              <Link href="/explore" className="text-sm font-medium text-gray-600 hover:text-[var(--color-coral)]" onClick={() => setMobileMenuOpen(false)}>
-                Explore
-              </Link>
-              <Link href="/pricing" className="text-sm font-medium text-gray-600 hover:text-[var(--color-coral)]" onClick={() => setMobileMenuOpen(false)}>
-                Pricing
-              </Link>
-              <hr className="border-gray-100" />
-              <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-[var(--color-coral)]" onClick={() => setMobileMenuOpen(false)}>
-                Login
-              </Link>
-              <Link
-                href="/register"
-                className="rounded-full bg-[var(--color-coral)] px-4 py-2 text-center text-sm font-semibold text-white"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Get Started Free
-              </Link>
-            </div>
-          </div>
-        )}
-      </nav>
+      <Navbar />
 
       {/* Hero */}
       <header className="relative bg-white">
@@ -141,10 +87,10 @@ export default function Home() {
 
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
-                href="/register"
+                href={isAuthenticated ? '/dashboard' : '/register'}
                 className="group inline-flex items-center gap-2 rounded-full bg-[var(--color-coral)] px-8 py-4 text-lg font-semibold text-white transition-all hover:bg-[var(--color-coral-dark)] hover:shadow-xl hover:shadow-[var(--color-coral)]/25"
               >
-                Start Your Story
+                {isAuthenticated ? 'Go to Dashboard' : 'Start Your Story'}
                 <svg className="h-5 w-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
@@ -245,10 +191,10 @@ export default function Home() {
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
-              href="/register"
+              href={isAuthenticated ? '/dashboard' : '/register'}
               className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 text-lg font-semibold text-[var(--color-coral)] shadow-xl transition-all hover:shadow-2xl hover:scale-105"
             >
-              Create Your Page
+              {isAuthenticated ? 'Go to Dashboard' : 'Create Your Page'}
               <span className="text-xl">💕</span>
             </Link>
             <Link

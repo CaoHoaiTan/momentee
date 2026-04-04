@@ -88,7 +88,7 @@ export async function getBySlug(slug: string, requestingUserId?: string | null) 
   return couple;
 }
 
-export async function getById(id: string) {
+export async function getById(id: string, requestingUserId?: string | null) {
   const couple = await db
     .selectFrom('couples')
     .selectAll()
@@ -97,6 +97,17 @@ export async function getById(id: string) {
 
   if (!couple) {
     throw NotFoundError('Couple');
+  }
+
+  // Private couple: only owners can view
+  if (!couple.is_public) {
+    if (
+      !requestingUserId ||
+      (couple.partner1_id !== requestingUserId &&
+        couple.partner2_id !== requestingUserId)
+    ) {
+      throw NotFoundError('Couple');
+    }
   }
 
   return couple;
@@ -301,6 +312,33 @@ export async function getStats(coupleId: string) {
     totalMilestones: Number(milestoneCount.count),
     totalPhotos: Number(photoCount.count),
   };
+}
+
+/**
+ * Verify the requesting user can access this couple's data.
+ * Public couples: anyone can access. Private couples: only members.
+ */
+export async function verifyCoupleAccess(
+  coupleId: string,
+  requestingUserId?: string | null,
+) {
+  const couple = await db
+    .selectFrom('couples')
+    .select(['id', 'is_public', 'partner1_id', 'partner2_id'])
+    .where('id', '=', coupleId)
+    .executeTakeFirst();
+
+  if (!couple) throw NotFoundError('Couple');
+
+  if (!couple.is_public) {
+    if (
+      !requestingUserId ||
+      (couple.partner1_id !== requestingUserId &&
+        couple.partner2_id !== requestingUserId)
+    ) {
+      throw NotFoundError('Couple');
+    }
+  }
 }
 
 function verifyOwnership(

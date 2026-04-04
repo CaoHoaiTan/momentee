@@ -27,9 +27,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const addToast = useCallback((message: string, type: ToastType) => {
     const id = nextId++;
     setToasts((prev) => [...prev, { id, message, type }]);
+    const duration = type === 'error' ? 6000 : type === 'info' ? 3000 : 4000;
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 4000);
+    }, duration);
   }, []);
 
   const showSuccess = useCallback((message: string) => addToast(message, 'success'), [addToast]);

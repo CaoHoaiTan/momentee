@@ -66,12 +66,14 @@ export async function getEventById(id: string) {
   return event;
 }
 
-export async function listEventsByCoupleId(coupleId: string) {
+export async function listEventsByCoupleId(coupleId: string, limit = 50, offset = 0) {
   return db
     .selectFrom('events')
     .selectAll()
     .where('couple_id', '=', coupleId)
     .orderBy('start_date', 'asc')
+    .limit(limit)
+    .offset(offset)
     .execute();
 }
 

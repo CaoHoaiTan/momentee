@@ -157,9 +157,11 @@ export async function downgradePlan(coupleId: string, userId?: string) {
 export async function createCheckoutUrl(coupleId: string, userId: string, plan: 'premium' | 'premium_plus'): Promise<string> {
   await verifyCoupleOwnership(coupleId, userId);
 
-  // When Stripe is not configured, return a placeholder
   if (!env.STRIPE_SECRET_KEY) {
-    // Direct upgrade without payment in dev mode
+    if (env.NODE_ENV === 'production') {
+      throw ValidationError('Payment system is not configured. Please contact support.');
+    }
+    // Direct upgrade without payment in dev mode only
     await upgradePlan(coupleId, userId, plan);
     return '/dashboard/settings?upgraded=true';
   }

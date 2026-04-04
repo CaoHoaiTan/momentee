@@ -3,6 +3,7 @@ import {
   updateMilestoneSchema,
 } from '@momentee/shared';
 import * as milestoneService from '../../services/milestone.service.js';
+import * as coupleService from '../../services/couple.service.js';
 import { requireAuth } from '../../utils/errors.js';
 import type { GQLContext } from '../context.js';
 
@@ -20,8 +21,9 @@ export const milestoneResolvers = {
     milestones: async (
       _parent: unknown,
       args: { coupleId: string },
-      _context: GQLContext,
+      context: GQLContext,
     ) => {
+      await coupleService.verifyCoupleAccess(args.coupleId, context.user?.userId);
       return milestoneService.listByCoupleId(args.coupleId);
     },
 

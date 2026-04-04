@@ -1,4 +1,5 @@
 import * as eventService from '../../services/event.service.js';
+import * as coupleService from '../../services/couple.service.js';
 import { requireAuth } from '../../utils/errors.js';
 import type { GQLContext } from '../context.js';
 
@@ -12,7 +13,12 @@ function stripNulls(obj: Record<string, unknown>): Record<string, unknown> {
 
 export const eventResolvers = {
   Query: {
-    events: async (_parent: unknown, args: { coupleId: string }) => {
+    events: async (
+      _parent: unknown,
+      args: { coupleId: string },
+      context: GQLContext,
+    ) => {
+      await coupleService.verifyCoupleAccess(args.coupleId, context.user?.userId);
       return eventService.listEventsByCoupleId(args.coupleId);
     },
 

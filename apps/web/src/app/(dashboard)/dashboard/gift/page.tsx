@@ -44,11 +44,12 @@ export default function GiftPage() {
   const [qrCodeFiles, setQrCodeFiles] = useState<MediaFile[]>([]);
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) router.push('/login');
-  }, [authLoading, isAuthenticated, router]);
-
-  useEffect(() => {
-    if (!authLoading && !coupleLoading && isAuthenticated && !couple) router.push('/onboarding');
+    if (authLoading || coupleLoading) return;
+    if (!isAuthenticated) {
+      router.push('/login');
+    } else if (!couple) {
+      router.push('/onboarding');
+    }
   }, [authLoading, coupleLoading, isAuthenticated, couple, router]);
 
   const { data, loading: accountsLoading } = useQuery<{ giftAccounts: GiftAccountData[] }>(GET_GIFT_ACCOUNTS, {

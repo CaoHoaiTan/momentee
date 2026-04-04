@@ -69,12 +69,14 @@ export async function getById(id: string) {
   return milestone;
 }
 
-export async function listByCoupleId(coupleId: string) {
+export async function listByCoupleId(coupleId: string, limit = 100, offset = 0) {
   return db
     .selectFrom('milestones')
     .selectAll()
     .where('couple_id', '=', coupleId)
     .orderBy('date', 'asc')
+    .limit(limit)
+    .offset(offset)
     .execute();
 }
 

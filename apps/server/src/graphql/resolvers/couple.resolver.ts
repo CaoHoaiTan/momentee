@@ -42,9 +42,9 @@ export const coupleResolvers = {
     coupleById: async (
       _parent: unknown,
       args: { id: string },
-      _context: GQLContext,
+      context: GQLContext,
     ) => {
-      return coupleService.getById(args.id);
+      return coupleService.getById(args.id, context.user?.userId);
     },
 
     myCouple: async (
@@ -152,14 +152,14 @@ export const coupleResolvers = {
       return daysBetween(parent.anniversary, new Date());
     },
 
-    totalWishes: async (parent: { id: string }) => {
-      const stats = await coupleService.getStats(parent.id);
-      return stats.totalWishes;
+    totalWishes: async (parent: { id: string; _stats?: ReturnType<typeof coupleService.getStats> }) => {
+      if (!parent._stats) parent._stats = coupleService.getStats(parent.id);
+      return (await parent._stats).totalWishes;
     },
 
-    totalPhotos: async (parent: { id: string }) => {
-      const stats = await coupleService.getStats(parent.id);
-      return stats.totalPhotos;
+    totalPhotos: async (parent: { id: string; _stats?: ReturnType<typeof coupleService.getStats> }) => {
+      if (!parent._stats) parent._stats = coupleService.getStats(parent.id);
+      return (await parent._stats).totalPhotos;
     },
   },
 };

@@ -1,10 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@apollo/client/react';
 import { EXPLORE_COUPLES } from '../../graphql/queries/explore.queries';
 import { LoadingSpinner } from '../../components/ui/loading-spinner';
+
+function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+}
 
 interface ExploreCouple {
   id: string;
@@ -19,9 +28,10 @@ interface ExploreCouple {
 
 export default function ExplorePage() {
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search, 300);
 
-  const { data, loading } = useQuery<{ exploreCouples: ExploreCouple[] }>(EXPLORE_COUPLES, {
-    variables: { limit: 24, search: search || undefined },
+  const { data, loading, error } = useQuery<{ exploreCouples: ExploreCouple[] }>(EXPLORE_COUPLES, {
+    variables: { limit: 24, search: debouncedSearch || undefined },
   });
 
   const couples = data?.exploreCouples ?? [];
@@ -46,6 +56,12 @@ export default function ExplorePage() {
       {loading ? (
         <div className="flex justify-center py-16">
           <LoadingSpinner size="lg" />
+        </div>
+      ) : error ? (
+        <div className="py-16 text-center text-gray-400">
+          <span className="text-5xl">😵</span>
+          <p className="mt-4 text-lg font-medium">Failed to load couples</p>
+          <p className="mt-1 text-sm">Please try again later.</p>
         </div>
       ) : couples.length === 0 ? (
         <div className="py-16 text-center text-gray-400">

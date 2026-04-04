@@ -30,7 +30,7 @@ export async function create(coupleId: string, input: CreateWishInput) {
       message: input.message,
       emoji: input.emoji ?? null,
       is_anonymous: input.isAnonymous ?? false,
-      is_approved: true,
+      is_approved: false,
     })
     .returningAll()
     .executeTakeFirstOrThrow();

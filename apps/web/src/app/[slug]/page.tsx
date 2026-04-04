@@ -1,68 +1,70 @@
-'use client';
+import type { Metadata } from 'next';
+import CouplePageWrapper from './wrapper';
 
-import React from 'react';
-import { useQuery } from '@apollo/client/react';
-import { useParams } from 'next/navigation';
-import { GET_COUPLE_BY_SLUG } from '../../graphql/queries/couple.queries';
-import { CouplePageClient } from './client';
-import { LoadingSpinner } from '../../components/ui/loading-spinner';
+const GRAPHQL_URL = process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql';
 
-interface CoupleQueryData {
-  couple: {
-    id: string;
-    slug: string;
-    displayName: string;
-    coverPhoto: string | null;
-    bio: string | null;
-    anniversary: string | null;
-    weddingDate: string | null;
-    theme: string;
-    layoutConfig: string | null;
-    backgroundMusic: string | null;
-    isPublic: boolean;
-    viewCount: number;
-    daysTogether: number;
-    totalWishes: number;
-    totalPhotos: number;
-    partner1: { id: string; name: string; avatar: string | null };
-    partner2: { id: string; name: string; avatar: string | null } | null;
-  } | null;
+async function fetchCoupleBySlug(slug: string) {
+  try {
+    const res = await fetch(GRAPHQL_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: `query CoupleBySlug($slug: String!) {
+          couple(slug: $slug) {
+            displayName
+            bio
+            coverPhoto
+          }
+        }`,
+        variables: { slug },
+      }),
+      next: { revalidate: 60 },
+    });
+    const json = await res.json();
+    return json.data?.couple ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const couple = await fetchCoupleBySlug(slug);
+
+  if (!couple) {
+    return {
+      title: 'Page Not Found - Momentee',
+      description: 'This couple page does not exist.',
+    };
+  }
+
+  const title = `${couple.displayName} - Momentee`;
+  const description =
+    couple.bio || `${couple.displayName}'s love story on Momentee`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      ...(couple.coverPhoto ? { images: [couple.coverPhoto] } : {}),
+      type: 'profile',
+      siteName: 'Momentee',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      ...(couple.coverPhoto ? { images: [couple.coverPhoto] } : {}),
+    },
+  };
 }
 
 export default function CouplePublicPage() {
-  const params = useParams();
-  const slug = params.slug as string;
-
-  const { data, loading, error } = useQuery<CoupleQueryData>(GET_COUPLE_BY_SLUG, {
-    variables: { slug },
-    skip: !slug,
-  });
-
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
-  }
-
-  if (error || !data?.couple) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-        <div className="text-6xl">💔</div>
-        <h1 className="text-2xl font-bold text-gray-900">Page Not Found</h1>
-        <p className="text-gray-500">
-          This couple page doesn&apos;t exist or has been made private.
-        </p>
-        <a
-          href="/"
-          className="mt-4 text-[var(--color-coral)] hover:underline"
-        >
-          Go home
-        </a>
-      </div>
-    );
-  }
-
-  return <CouplePageClient couple={data.couple} />;
+  return <CouplePageWrapper />;
 }

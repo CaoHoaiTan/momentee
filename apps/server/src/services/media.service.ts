@@ -116,11 +116,22 @@ export async function listPostsByCouple(
   coupleId: string,
   limit = 20,
   offset = 0,
+  requestingUserId?: string | null,
 ) {
-  const posts = await db
+  let query = db
     .selectFrom('posts')
     .selectAll()
-    .where('couple_id', '=', coupleId)
+    .where('couple_id', '=', coupleId);
+
+  // Non-owners can only see public posts
+  const isOwner = requestingUserId
+    ? await isCoupleMember(coupleId, requestingUserId)
+    : false;
+  if (!isOwner) {
+    query = query.where('visibility', '=', 'public');
+  }
+
+  const posts = await query
     .orderBy('created_at', 'desc')
     .limit(limit)
     .offset(offset)
@@ -176,15 +187,22 @@ function extractPublicId(url: string): string | null {
   return match?.[1] ?? null;
 }
 
-async function verifyCoupleOwnership(coupleId: string, userId: string) {
+async function isCoupleMember(
+  coupleId: string,
+  userId: string,
+): Promise<boolean> {
   const couple = await db
     .selectFrom('couples')
     .select(['partner1_id', 'partner2_id'])
     .where('id', '=', coupleId)
     .executeTakeFirst();
 
-  if (!couple) throw NotFoundError('Couple');
-  if (couple.partner1_id !== userId && couple.partner2_id !== userId) {
+  if (!couple) return false;
+  return couple.partner1_id === userId || couple.partner2_id === userId;
+}
+
+async function verifyCoupleOwnership(coupleId: string, userId: string) {
+  if (!(await isCoupleMember(coupleId, userId))) {
     throw ForbiddenError('You are not a member of this couple');
   }
 }

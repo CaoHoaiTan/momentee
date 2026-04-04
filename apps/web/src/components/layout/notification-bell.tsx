@@ -37,7 +37,7 @@ export function NotificationBell() {
   const ref = useRef<HTMLDivElement>(null);
 
   const { data: countData } = useQuery<{ unreadNotificationCount: number }>(GET_UNREAD_COUNT, {
-    pollInterval: 30000,
+    pollInterval: open ? 15000 : 60000,
   });
 
   const { data: notifData } = useQuery<{ notifications: NotificationData[] }>(GET_NOTIFICATIONS, {

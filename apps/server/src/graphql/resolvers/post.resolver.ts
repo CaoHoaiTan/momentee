@@ -8,12 +8,13 @@ export const postResolvers = {
     posts: async (
       _parent: unknown,
       args: { coupleId: string; limit?: number; offset?: number },
-      _context: GQLContext,
+      context: GQLContext,
     ) => {
       return mediaService.listPostsByCouple(
         args.coupleId,
         args.limit ?? 20,
         args.offset ?? 0,
+        context.user?.userId,
       );
     },
 
