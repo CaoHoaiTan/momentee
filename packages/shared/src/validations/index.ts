@@ -1,5 +1,27 @@
 import { z } from 'zod';
 
+// ISO date string (YYYY-MM-DD)
+const dateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format');
+
+// Password reset schemas
+export const forgotPasswordSchema = z.object({
+  email: z.string().email(),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password must be at most 128 characters')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number'),
+});
+
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+
 export const registerSchema = z.object({
   email: z.string().email(),
   password: z
@@ -19,7 +41,7 @@ export const loginSchema = z.object({
 
 export const createCoupleSchema = z.object({
   displayName: z.string().min(2).max(200),
-  anniversary: z.string().optional(),
+  anniversary: dateString.optional(),
   bio: z.string().max(500).optional(),
 });
 
@@ -32,8 +54,8 @@ export const createPostSchema = z.object({
 export const createMilestoneSchema = z.object({
   title: z.string().min(1).max(200),
   description: z.string().max(1000).optional(),
-  date: z.string(),
-  icon: z.string().max(10).optional(),
+  date: dateString,
+  icon: z.string().max(4).optional(),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
@@ -42,8 +64,8 @@ export type CreateCoupleInput = z.infer<typeof createCoupleSchema>;
 export const updateCoupleSchema = z.object({
   displayName: z.string().min(2).max(200).optional(),
   bio: z.string().max(500).optional(),
-  anniversary: z.string().optional(),
-  weddingDate: z.string().optional(),
+  anniversary: dateString.optional(),
+  weddingDate: dateString.optional(),
   theme: z.string().max(50).optional(),
   layoutConfig: z.string().max(2000).optional(),
   backgroundMusic: z.string().max(8000).nullable().optional(),
@@ -54,14 +76,14 @@ export const updateCoupleSchema = z.object({
 export const updateMilestoneSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().max(1000).optional(),
-  date: z.string().optional(),
-  icon: z.string().max(10).optional(),
+  date: dateString.optional(),
+  icon: z.string().max(4).optional(),
 });
 
 export const createWishSchema = z.object({
   authorName: z.string().min(1).max(100),
   message: z.string().min(1).max(2000),
-  emoji: z.string().max(10).optional(),
+  emoji: z.string().max(4).optional(),
   isAnonymous: z.boolean().optional(),
 });
 

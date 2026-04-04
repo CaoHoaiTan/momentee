@@ -17,6 +17,8 @@ export interface UsersTable {
   role: 'user' | 'admin';
   plan: 'free' | 'premium' | 'premium_plus';
   refresh_token: string | null;
+  reset_token: string | null;
+  reset_token_expires_at: Date | null;
   created_at: Created;
   updated_at: Updated;
 }
@@ -56,6 +58,7 @@ export interface MilestonesTable {
   photo: string | null;
   sort_order: number;
   created_at: Created;
+  updated_at: Updated;
 }
 
 // ─── Posts ────────────────────────────────────────────────────────────
@@ -115,6 +118,7 @@ export interface WishesTable {
   is_anonymous: boolean;
   is_approved: boolean;
   created_at: Created;
+  updated_at: Updated;
 }
 
 // ─── Reactions ───────────────────────────────────────────────────────
@@ -163,6 +167,7 @@ export interface RsvpsTable {
   plus_one: boolean;
   note: string | null;
   created_at: Created;
+  updated_at: Updated;
 }
 
 // ─── Quizzes ─────────────────────────────────────────────────────────
@@ -193,6 +198,7 @@ export interface QuizResponsesTable {
   score: number;
   total_questions: number;
   created_at: Created;
+  updated_at: Updated;
 }
 
 // ─── Gift Accounts ───────────────────────────────────────────────────
@@ -206,6 +212,7 @@ export interface GiftAccountsTable {
   note: string | null;
   is_active: boolean;
   created_at: Created;
+  updated_at: Updated;
 }
 
 // ─── Notifications ───────────────────────────────────────────────────

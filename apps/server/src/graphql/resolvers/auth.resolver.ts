@@ -1,4 +1,4 @@
-import { registerSchema, loginSchema } from '@momentee/shared';
+import { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } from '@momentee/shared';
 import * as authService from '../../services/auth.service.js';
 import type { GQLContext } from '../context.js';
 
@@ -31,6 +31,16 @@ export const authResolvers = {
         await authService.logout(context.user.userId);
       }
       return true;
+    },
+
+    forgotPassword: async (_parent: unknown, args: { email: string }) => {
+      const { email } = forgotPasswordSchema.parse({ email: args.email });
+      return authService.requestPasswordReset(email);
+    },
+
+    resetPassword: async (_parent: unknown, args: { token: string; password: string }) => {
+      const validated = resetPasswordSchema.parse(args);
+      return authService.resetPassword(validated.token, validated.password);
     },
   },
 };

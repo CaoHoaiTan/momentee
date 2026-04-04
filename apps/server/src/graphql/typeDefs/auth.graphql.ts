@@ -23,5 +23,7 @@ export const authTypeDefs = gql`
     login(input: LoginInput!): AuthPayload!
     refreshToken(token: String!): AuthPayload!
     logout: Boolean!
+    forgotPassword(email: String!): Boolean!
+    resetPassword(token: String!, password: String!): Boolean!
   }
 `;

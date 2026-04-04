@@ -146,7 +146,7 @@ export function MediaUpload({
             <div key={i} className="group relative aspect-square">
               <img
                 src={f.preview}
-                alt=""
+                alt={`Upload preview ${i + 1}`}
                 className="h-full w-full rounded-lg object-cover"
               />
               <button

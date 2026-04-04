@@ -56,3 +56,15 @@ export const LOGOUT_MUTATION = gql`
     logout
   }
 `;
+
+export const FORGOT_PASSWORD_MUTATION = gql`
+  mutation ForgotPassword($email: String!) {
+    forgotPassword(email: $email)
+  }
+`;
+
+export const RESET_PASSWORD_MUTATION = gql`
+  mutation ResetPassword($token: String!, $password: String!) {
+    resetPassword(token: $token, password: $password)
+  }
+`;

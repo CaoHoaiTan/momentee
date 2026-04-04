@@ -51,8 +51,9 @@ const VISIBILITY_ICONS: Record<string, string> = {
   private: '🔒',
 };
 
-function ImageGrid({ media }: { media: MediaData[] }) {
+function ImageGrid({ media, caption }: { media: MediaData[]; caption?: string | null }) {
   const count = media.length;
+  const alt = caption || 'Post photo';
 
   if (count === 0) return null;
 
@@ -60,7 +61,7 @@ function ImageGrid({ media }: { media: MediaData[] }) {
     return (
       <img
         src={media[0].url}
-        alt=""
+        alt={alt}
         loading="lazy"
         className="aspect-square w-full rounded-xl object-cover"
       />
@@ -70,8 +71,8 @@ function ImageGrid({ media }: { media: MediaData[] }) {
   if (count === 2) {
     return (
       <div className="grid grid-cols-2 gap-1">
-        {media.slice(0, 2).map((m) => (
-          <img key={m.id} src={m.url} alt="" loading="lazy" className="aspect-square w-full rounded-lg object-cover" />
+        {media.slice(0, 2).map((m, i) => (
+          <img key={m.id} src={m.url} alt={`${alt} ${i + 1}`} loading="lazy" className="aspect-square w-full rounded-lg object-cover" />
         ))}
       </div>
     );
@@ -80,9 +81,9 @@ function ImageGrid({ media }: { media: MediaData[] }) {
   if (count === 3) {
     return (
       <div className="grid grid-cols-2 gap-1">
-        <img src={media[0].url} alt="" loading="lazy" className="row-span-2 h-full w-full rounded-lg object-cover" />
-        <img src={media[1].url} alt="" loading="lazy" className="aspect-square w-full rounded-lg object-cover" />
-        <img src={media[2].url} alt="" loading="lazy" className="aspect-square w-full rounded-lg object-cover" />
+        <img src={media[0].url} alt={`${alt} 1`} loading="lazy" className="row-span-2 h-full w-full rounded-lg object-cover" />
+        <img src={media[1].url} alt={`${alt} 2`} loading="lazy" className="aspect-square w-full rounded-lg object-cover" />
+        <img src={media[2].url} alt={`${alt} 3`} loading="lazy" className="aspect-square w-full rounded-lg object-cover" />
       </div>
     );
   }
@@ -92,7 +93,7 @@ function ImageGrid({ media }: { media: MediaData[] }) {
     <div className="grid grid-cols-2 gap-1">
       {media.slice(0, 4).map((m, i) => (
         <div key={m.id} className="relative aspect-square">
-          <img src={m.url} alt="" loading="lazy" className="h-full w-full rounded-lg object-cover" />
+          <img src={m.url} alt={`${alt} ${i + 1}`} loading="lazy" className="h-full w-full rounded-lg object-cover" />
           {i === 3 && count > 4 && (
             <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50">
               <span className="text-xl font-bold text-white">+{count - 4}</span>
@@ -122,7 +123,7 @@ export function PostCard({ post, onDelete, isOwner = false }: PostCardProps) {
       )}
 
       <div className="p-3">
-        <ImageGrid media={post.media} />
+        <ImageGrid media={post.media} caption={post.caption} />
       </div>
 
       {post.caption && (

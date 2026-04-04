@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useMutation } from '@apollo/client/react';
+import { FORGOT_PASSWORD_MUTATION } from '../../../graphql/mutations/auth.mutations';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { Card } from '../../../components/ui/card';
@@ -17,7 +19,9 @@ type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
   const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [forgotPassword, { loading }] = useMutation(FORGOT_PASSWORD_MUTATION);
 
   const {
     register,
@@ -27,12 +31,15 @@ export default function ForgotPasswordPage() {
     resolver: zodResolver(forgotPasswordSchema),
   });
 
-  const onSubmit = async (_data: ForgotPasswordFormData) => {
-    setLoading(true);
-    // Placeholder: simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setLoading(false);
-    setSubmitted(true);
+  const onSubmit = async (data: ForgotPasswordFormData) => {
+    try {
+      setError(null);
+      await forgotPassword({ variables: { email: data.email } });
+      setSubmitted(true);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
+      setError(message);
+    }
   };
 
   return (
@@ -53,11 +60,14 @@ export default function ForgotPasswordPage() {
               viewBox="0 0 24 24"
               stroke="currentColor"
               strokeWidth={2}
+              aria-hidden="true"
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <p className="text-sm text-gray-600">Check your email for a password reset link.</p>
+          <p className="text-sm text-gray-600">
+            If an account exists with that email, you&apos;ll receive a password reset link shortly.
+          </p>
           <Link
             href="/login"
             className="mt-4 inline-block text-sm font-medium text-[var(--color-coral)] hover:underline"
@@ -75,6 +85,7 @@ export default function ForgotPasswordPage() {
               error={errors.email?.message}
               {...register('email')}
             />
+            {error && <p className="text-sm text-red-500">{error}</p>}
             <Button type="submit" loading={loading} className="w-full">
               Send Reset Link
             </Button>
