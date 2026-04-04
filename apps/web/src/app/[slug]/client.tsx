@@ -309,9 +309,10 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
     (musicConfig.tracks?.length ?? 0) > 0;
 
   const [gateDismissed, setGateDismissed] = useState(false);
+  const [gatePlayedMusic, setGatePlayedMusic] = useState(false);
 
-  // Only suppress MusicPlayer's hidden iframe for Spotify tracks (gate drives playback)
-  const gateHandledAutoplay = shouldShowGate && firstTrack?.source === 'spotify';
+  // Only suppress MusicPlayer when gate ACTUALLY played music on this page load
+  const gateHandledAutoplay = gatePlayedMusic;
 
   const [incrementView] = useMutation(INCREMENT_VIEW_COUNT);
   const [createWish, { loading: creatingWish }] = useMutation(CREATE_WISH, {
@@ -618,7 +619,7 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
   return (
     <ThemeProvider themeId={themeId}>
       {/* Welcome Gate — renders null for returning visitors or when no autoplay */}
-      {shouldShowGate && !gateDismissed && firstTrack && (
+      {shouldShowGate && firstTrack && (
         <WelcomeGate
           coupleSlug={couple.slug}
           partner1Name={couple.partner1.name}
@@ -627,7 +628,10 @@ export function CouplePageClient({ couple }: { couple: CoupleData }) {
           isDark={theme.isDark}
           primaryColor={theme.colors.primary}
           secondaryColor={theme.colors.secondary}
-          onDismissed={() => setGateDismissed(true)}
+          onDismissed={(playedMusic) => {
+            setGateDismissed(true);
+            if (playedMusic) setGatePlayedMusic(true);
+          }}
         />
       )}
       <LoveMeter />

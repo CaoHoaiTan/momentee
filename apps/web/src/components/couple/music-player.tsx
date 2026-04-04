@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import type { BackgroundMusicConfig } from '../../lib/music-config';
 import { useBackgroundMusic } from '../../hooks/useBackgroundMusic';
 import { SpotifyEmbed } from './spotify-embed';
+import { loadSpotifyAndPlay } from '../../lib/spotify-player';
 
 interface MusicPlayerProps {
   config: BackgroundMusicConfig;
@@ -28,8 +29,6 @@ export function MusicPlayer({ config, slug, hasOwnerNav = false, gateHandledAuto
     next,
     prev,
     dismissInteraction,
-    playSpotify,
-    spotifyContainerRef,
   } = useBackgroundMusic(config, slug, gateHandledAutoplay);
 
   if (!currentTrack) return null;
@@ -45,9 +44,9 @@ export function MusicPlayer({ config, slug, hasOwnerNav = false, gateHandledAuto
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ delay: 0.5, duration: 0.3 }}
     >
-      {/* Single Spotify embed — always rendered, visibility toggled */}
-      {isSpotify && currentTrack.source === 'spotify' && !gateHandledAutoplay && (
-        <SpotifyEmbed spotifyId={currentTrack.spotifyId} hidden={!expanded} compact />
+      {/* Spotify embed — full player shown when expanded */}
+      {isSpotify && currentTrack.source === 'spotify' && expanded && (
+        <SpotifyEmbed spotifyId={currentTrack.spotifyId} hidden={false} compact={false} />
       )}
 
       {!expanded ? (
@@ -56,8 +55,8 @@ export function MusicPlayer({ config, slug, hasOwnerNav = false, gateHandledAuto
           <motion.button
             onClick={() => {
               if (needsInteraction) {
-                if (isSpotify) {
-                  playSpotify();
+                if (isSpotify && currentTrack.source === 'spotify') {
+                  loadSpotifyAndPlay(currentTrack.spotifyId);
                 } else {
                   toggle();
                 }
@@ -111,8 +110,8 @@ export function MusicPlayer({ config, slug, hasOwnerNav = false, gateHandledAuto
           {needsInteraction && (
             <motion.button
               onClick={() => {
-                if (isSpotify) {
-                  playSpotify();
+                if (isSpotify && currentTrack.source === 'spotify') {
+                  loadSpotifyAndPlay(currentTrack.spotifyId);
                 } else {
                   toggle();
                 }
@@ -297,13 +296,6 @@ export function MusicPlayer({ config, slug, hasOwnerNav = false, gateHandledAuto
             </>
           )}
         </motion.div>
-      )}
-      {/* Hidden container for Spotify IFrame API playback */}
-      {isSpotify && (
-        <div
-          ref={spotifyContainerRef}
-          style={{ position: 'fixed', top: -9999, left: -9999, width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none' }}
-        />
       )}
     </motion.div>
   );

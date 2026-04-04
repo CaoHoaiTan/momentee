@@ -15,7 +15,7 @@ interface WelcomeGateProps {
   isDark: boolean;
   primaryColor: string;
   secondaryColor: string;
-  onDismissed: () => void;
+  onDismissed: (playedMusic: boolean) => void;
 }
 
 export function WelcomeGate({
@@ -41,7 +41,7 @@ export function WelcomeGate({
 
   // For returning visitors: call onDismissed after mount, render nothing
   useEffect(() => {
-    if (!shouldShow) onDismissed();
+    if (!shouldShow) onDismissed(false);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [state, setState] = useState<'visible' | 'dismissing'>('visible');
@@ -64,7 +64,7 @@ export function WelcomeGate({
 
   return (
     <>
-      <AnimatePresence onExitComplete={onDismissed}>
+      <AnimatePresence onExitComplete={() => onDismissed(true)}>
         {state === 'visible' && (
           <motion.div
             key="welcome-gate"

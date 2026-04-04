@@ -217,11 +217,7 @@ async function registerUser(email: string, password: string, name: string) {
   return json.data.register;
 }
 
-async function loginViaUI(
-  page: import('@playwright/test').Page,
-  email: string,
-  password: string,
-) {
+async function loginViaUI(page: import('@playwright/test').Page, email: string, password: string) {
   await page.goto('/login');
   await page.waitForLoadState('networkidle');
   await page.getByPlaceholder('you@example.com').fill(email);
@@ -318,11 +314,9 @@ test.describe('GraphQL API — backgroundMusic CRUD', () => {
     const email = `e2e-music-api-${uniqueSuffix}@test.dev`;
     const auth = await registerUser(email, 'Password123', 'Music API User');
     accessToken = auth.accessToken;
-    const couple = await createCoupleAPI(
-      accessToken,
-      `Music API Couple ${uniqueSuffix}`,
-      { anniversary: '2023-06-01' },
-    );
+    const couple = await createCoupleAPI(accessToken, `Music API Couple ${uniqueSuffix}`, {
+      anniversary: '2023-06-01',
+    });
     coupleId = couple.id;
     coupleSlug = couple.slug;
     // Upgrade to PREMIUM so we can store 1 track
@@ -330,21 +324,13 @@ test.describe('GraphQL API — backgroundMusic CRUD', () => {
   });
 
   test('updateCouple stores backgroundMusic (Spotify track)', async () => {
-    const json = await setBackgroundMusicAPI(
-      accessToken,
-      coupleId,
-      MUSIC_CONFIG_1_SPOTIFY,
-    );
+    const json = await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_1_SPOTIFY);
     expect(json.errors).toBeUndefined();
     expect(json.data.updateCouple.backgroundMusic).toBeTruthy();
   });
 
   test('updateCouple stores backgroundMusic (Upload track)', async () => {
-    const json = await setBackgroundMusicAPI(
-      accessToken,
-      coupleId,
-      MUSIC_CONFIG_1_UPLOAD,
-    );
+    const json = await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_1_UPLOAD);
     expect(json.errors).toBeUndefined();
     expect(json.data.updateCouple.backgroundMusic).toBeTruthy();
   });
@@ -443,11 +429,7 @@ test.describe('GraphQL API — backgroundMusic CRUD', () => {
 
   test('FREE plan: 1 track returns FORBIDDEN', async () => {
     const freeEmail = `e2e-music-free-${uniqueSuffix}@test.dev`;
-    const freeAuth = await registerUser(
-      freeEmail,
-      'Password123',
-      'Free Music User',
-    );
+    const freeAuth = await registerUser(freeEmail, 'Password123', 'Free Music User');
     const freeCouple = await createCoupleAPI(
       freeAuth.accessToken,
       `Free Music Couple ${uniqueSuffix}`,
@@ -463,21 +445,13 @@ test.describe('GraphQL API — backgroundMusic CRUD', () => {
   });
 
   test('PREMIUM plan: 1 track succeeds', async () => {
-    const json = await setBackgroundMusicAPI(
-      accessToken,
-      coupleId,
-      MUSIC_CONFIG_1_SPOTIFY,
-    );
+    const json = await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_1_SPOTIFY);
     expect(json.errors).toBeUndefined();
     expect(json.data.updateCouple.backgroundMusic).toBeTruthy();
   });
 
   test('PREMIUM plan: 2 tracks returns FORBIDDEN', async () => {
-    const json = await setBackgroundMusicAPI(
-      accessToken,
-      coupleId,
-      MUSIC_CONFIG_2_TRACKS,
-    );
+    const json = await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_2_TRACKS);
     expect(json.errors).toBeDefined();
     expect(json.errors[0].extensions.code).toBe('FORBIDDEN');
     expect(json.errors[0].message).toContain('plan allows 1');
@@ -485,11 +459,7 @@ test.describe('GraphQL API — backgroundMusic CRUD', () => {
 
   test('PREMIUM_PLUS plan: 3 tracks succeeds', async () => {
     await upgradePlanAPI(accessToken, coupleId, 'premium_plus');
-    const json = await setBackgroundMusicAPI(
-      accessToken,
-      coupleId,
-      MUSIC_CONFIG_3_TRACKS,
-    );
+    const json = await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_3_TRACKS);
     expect(json.errors).toBeUndefined();
     expect(json.data.updateCouple.backgroundMusic).toBeTruthy();
     const parsed = JSON.parse(json.data.updateCouple.backgroundMusic);
@@ -582,10 +552,7 @@ test.describe('Frontend — Music Settings in Dashboard', () => {
   test.beforeAll(async () => {
     const auth = await registerUser(email, password, 'Music UI User');
     accessToken = auth.accessToken;
-    const couple = await createCoupleAPI(
-      accessToken,
-      `Music UI Couple ${uniqueSuffix}`,
-    );
+    const couple = await createCoupleAPI(accessToken, `Music UI Couple ${uniqueSuffix}`);
     coupleId = couple.id;
   });
 
@@ -594,19 +561,13 @@ test.describe('Frontend — Music Settings in Dashboard', () => {
     await page.goto('/dashboard/settings');
     await page.waitForLoadState('networkidle');
 
-    await expect(
-      page.getByRole('heading', { name: 'Background Music', level: 2 }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Background Music', level: 2 })).toBeVisible();
     await expect(page.getByText('Upgrade to Premium to unlock')).toBeVisible();
 
-    await expect(
-      page.getByRole('button', { name: 'Choose Music' }),
-    ).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Choose Music' })).toHaveCount(0);
   });
 
-  test('after upgrade to PREMIUM_PLUS: music controls appear', async ({
-    page,
-  }) => {
+  test('after upgrade to PREMIUM_PLUS: music controls appear', async ({ page }) => {
     await upgradePlanAPI(accessToken, coupleId, 'premium_plus');
     await loginViaUI(page, email, password);
     await page.goto('/dashboard/settings');
@@ -614,9 +575,7 @@ test.describe('Frontend — Music Settings in Dashboard', () => {
 
     await expect(page.getByText('Upgrade to Premium to unlock')).not.toBeVisible();
 
-    await expect(
-      page.getByRole('button', { name: 'Choose Music' }),
-    ).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Choose Music' })).toBeVisible();
   });
 
   test('enable toggle turns on music', async ({ page }) => {
@@ -624,9 +583,9 @@ test.describe('Frontend — Music Settings in Dashboard', () => {
     await page.goto('/dashboard/settings');
     await page.waitForLoadState('networkidle');
 
-    const musicToggleLabel = page.locator(
-      'label.relative.flex.cursor-pointer.items-center',
-    ).first();
+    const musicToggleLabel = page
+      .locator('label.relative.flex.cursor-pointer.items-center')
+      .first();
     const checkbox = musicToggleLabel.locator('input[type="checkbox"]');
 
     const isChecked = await checkbox.isChecked();
@@ -642,9 +601,7 @@ test.describe('Frontend — Music Settings in Dashboard', () => {
     await page.waitForLoadState('networkidle');
 
     await page.getByRole('button', { name: 'Choose Music' }).click();
-    await expect(
-      page.getByRole('heading', { name: 'Choose Music', level: 2 }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Choose Music', level: 2 })).toBeVisible();
 
     // Verify tabs exist
     await expect(page.getByText('Search Spotify')).toBeVisible();
@@ -657,9 +614,7 @@ test.describe('Frontend — Music Settings in Dashboard', () => {
     await page.waitForLoadState('networkidle');
 
     await page.getByRole('button', { name: 'Choose Music' }).click();
-    await expect(
-      page.getByRole('heading', { name: 'Choose Music', level: 2 }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Choose Music', level: 2 })).toBeVisible();
 
     await expect(page.getByRole('button', { name: 'Romantic' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Happy' })).toBeVisible();
@@ -672,16 +627,10 @@ test.describe('Frontend — Music Settings in Dashboard', () => {
     await page.waitForLoadState('networkidle');
 
     await page.getByRole('button', { name: 'Choose Music' }).click();
-    await expect(
-      page.getByRole('heading', { name: 'Choose Music', level: 2 }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Choose Music', level: 2 })).toBeVisible();
 
-    await page
-      .locator('.fixed.inset-0.z-50 > .absolute.inset-0')
-      .click({ force: true });
-    await expect(
-      page.getByRole('heading', { name: 'Choose Music', level: 2 }),
-    ).not.toBeVisible();
+    await page.locator('.fixed.inset-0.z-50 > .absolute.inset-0').click({ force: true });
+    await expect(page.getByRole('heading', { name: 'Choose Music', level: 2 })).not.toBeVisible();
   });
 
   test('upload tab shows file upload area', async ({ page }) => {
@@ -709,10 +658,7 @@ test.describe('Frontend — Music Player on Public Page', () => {
   test.beforeAll(async () => {
     const auth = await registerUser(email, password, 'Music Player User');
     accessToken = auth.accessToken;
-    const couple = await createCoupleAPI(
-      accessToken,
-      `Music Player Couple ${uniqueSuffix}`,
-    );
+    const couple = await createCoupleAPI(accessToken, `Music Player Couple ${uniqueSuffix}`);
     coupleId = couple.id;
     coupleSlug = couple.slug;
     await upgradePlanAPI(accessToken, coupleId, 'premium');
@@ -720,11 +666,7 @@ test.describe('Frontend — Music Player on Public Page', () => {
 
   test('no music config → no player', async ({ page }) => {
     const noMusicEmail = `e2e-no-music-${uniqueSuffix}@test.dev`;
-    const noMusicAuth = await registerUser(
-      noMusicEmail,
-      'Password123',
-      'No Music User',
-    );
+    const noMusicAuth = await registerUser(noMusicEmail, 'Password123', 'No Music User');
     const noMusicCouple = await createCoupleAPI(
       noMusicAuth.accessToken,
       `No Music Couple ${uniqueSuffix}`,
@@ -780,9 +722,7 @@ test.describe('Frontend — Music Player on Public Page', () => {
     await expect(iframe).toBeVisible();
   });
 
-  test('clicking upload player expands with custom controls', async ({
-    page,
-  }) => {
+  test('clicking upload player expands with custom controls', async ({ page }) => {
     await page.addInitScript(() => {
       Object.defineProperty(HTMLMediaElement.prototype, 'play', {
         configurable: true,
@@ -884,10 +824,7 @@ test.describe('Frontend — Music Search in Picker', () => {
   test.beforeAll(async () => {
     const auth = await registerUser(email, password, 'Music Search User');
     accessToken = auth.accessToken;
-    const couple = await createCoupleAPI(
-      accessToken,
-      `Music Search Couple ${uniqueSuffix}`,
-    );
+    const couple = await createCoupleAPI(accessToken, `Music Search Couple ${uniqueSuffix}`);
     coupleId = couple.id;
     await upgradePlanAPI(accessToken, coupleId, 'premium_plus');
   });
@@ -922,9 +859,7 @@ test.describe('Frontend — Music Search in Picker', () => {
     await page.waitForLoadState('networkidle');
     await mockSpotifySearchAPI(page);
     await page.getByRole('button', { name: 'Choose Music' }).click();
-    await expect(
-      page.getByRole('heading', { name: 'Choose Music', level: 2 }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Choose Music', level: 2 })).toBeVisible();
   }
 
   test('category tracks load on open with correct auth', async ({ page }) => {
@@ -987,10 +922,7 @@ test.describe('Frontend — Welcome Gate', () => {
   test.beforeAll(async () => {
     const auth = await registerUser(email, password, 'Gate User');
     accessToken = auth.accessToken;
-    const couple = await createCoupleAPI(
-      accessToken,
-      `Gate Couple ${uniqueSuffix}`,
-    );
+    const couple = await createCoupleAPI(accessToken, `Gate Couple ${uniqueSuffix}`);
     coupleId = couple.id;
     coupleSlug = couple.slug;
     await upgradePlanAPI(accessToken, coupleId, 'premium');
@@ -1003,9 +935,7 @@ test.describe('Frontend — Welcome Gate', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(700);
 
-    await expect(
-      page.getByRole('button', { name: 'Enter / Bắt đầu xem' }),
-    ).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Enter & listen together' })).toHaveCount(0);
     // Player should still render normally
     await expect(page.locator('.fixed.bottom-4.left-4.z-30')).toBeVisible();
   });
@@ -1036,9 +966,7 @@ test.describe('Frontend — Welcome Gate', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(700);
 
-    await expect(
-      page.getByRole('button', { name: 'Enter / Bắt đầu xem' }),
-    ).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Enter & listen together' })).toHaveCount(0);
   });
 
   test('first-time visitor: gate is visible fullscreen', async ({ page }) => {
@@ -1047,9 +975,7 @@ test.describe('Frontend — Welcome Gate', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(700);
 
-    await expect(
-      page.getByRole('button', { name: 'Enter / Bắt đầu xem' }),
-    ).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Enter & listen together' })).toBeVisible();
   });
 
   test('gate shows track title and artist', async ({ page }) => {
@@ -1077,47 +1003,48 @@ test.describe('Frontend — Welcome Gate', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(700);
 
-    await page.getByRole('button', { name: 'Enter / Bắt đầu xem' }).click();
+    await page.getByRole('button', { name: 'Enter & listen together' }).click();
     // Exit animation is 600ms; wait for it to complete + buffer
     await page.waitForTimeout(900);
 
-    await expect(
-      page.getByRole('button', { name: 'Enter / Bắt đầu xem' }),
-    ).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Enter & listen together' })).toHaveCount(0);
     await expect(page.locator('.fixed.bottom-4.left-4.z-30')).toBeVisible();
   });
 
-  test('clicking Enter sets localStorage gate key', async ({ page }) => {
+  test('clicking Enter sets sessionStorage gate key', async ({ page }) => {
     await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_SPOTIFY_AUTOPLAY);
     await page.goto(`/${coupleSlug}`);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(700);
 
-    await page.getByRole('button', { name: 'Enter / Bắt đầu xem' }).click();
+    await page.getByRole('button', { name: 'Enter & listen together' }).click();
     await page.waitForTimeout(900);
 
     const gateValue = await page.evaluate(
-      (slug) => localStorage.getItem(`momentee_gate_${slug}`),
+      (slug) => sessionStorage.getItem(`momentee_gate_${slug}`),
       coupleSlug,
     );
     expect(gateValue).toBe('1');
   });
 
-  test('returning visitor: gate skipped, player visible immediately', async ({ page }) => {
+  test('returning visitor in same session: gate skipped, player visible immediately', async ({
+    page,
+  }) => {
     await setBackgroundMusicAPI(accessToken, coupleId, MUSIC_CONFIG_SPOTIFY_AUTOPLAY);
 
-    // Pre-set localStorage before page load to simulate a returning visitor
-    await page.addInitScript(({ slug }) => {
-      localStorage.setItem(`momentee_gate_${slug}`, '1');
-    }, { slug: coupleSlug });
+    // Pre-set sessionStorage before page load to simulate a returning visitor in same session
+    await page.addInitScript(
+      ({ slug }) => {
+        sessionStorage.setItem(`momentee_gate_${slug}`, '1');
+      },
+      { slug: coupleSlug },
+    );
 
     await page.goto(`/${coupleSlug}`);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(700);
 
-    await expect(
-      page.getByRole('button', { name: 'Enter / Bắt đầu xem' }),
-    ).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Enter & listen together' })).toHaveCount(0);
     await expect(page.locator('.fixed.bottom-4.left-4.z-30')).toBeVisible();
   });
 
@@ -1138,17 +1065,13 @@ test.describe('Frontend — Welcome Gate', () => {
     await page.waitForTimeout(700);
 
     // Gate should show for upload track too
-    await expect(
-      page.getByRole('button', { name: 'Enter / Bắt đầu xem' }),
-    ).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Enter & listen together' })).toBeVisible();
 
-    await page.getByRole('button', { name: 'Enter / Bắt đầu xem' }).click();
+    await page.getByRole('button', { name: 'Enter & listen together' }).click();
     await page.waitForTimeout(900);
 
     // Gate gone, upload track shows needsInteraction label
-    await expect(
-      page.getByRole('button', { name: 'Enter / Bắt đầu xem' }),
-    ).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Enter & listen together' })).toHaveCount(0);
     await expect(page.getByText('Tap to play music')).toBeVisible();
   });
 });

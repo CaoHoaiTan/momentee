@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { createId } from '@paralleldrive/cuid2';
 import { Button } from '../ui/button';
 import { ClipSelector } from './clip-selector';
+import { loadSpotifyAndPlay, stopSpotifyPlayback } from '../../lib/spotify-player';
 import type { MusicTrack, SpotifyTrack, UploadTrack } from '../../lib/music-config';
 
 const CATEGORIES = [
@@ -67,7 +68,7 @@ export function MusicPicker({ onSelect, onClose }: MusicPickerProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => { stopSpotifyPlayback(); onClose(); }} />
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -79,7 +80,7 @@ export function MusicPicker({ onSelect, onClose }: MusicPickerProps) {
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
           <h2 className="text-lg font-semibold text-gray-900">Choose Music</h2>
           <button
-            onClick={onClose}
+            onClick={() => { stopSpotifyPlayback(); onClose(); }}
             className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -143,6 +144,7 @@ function SpotifyTab({ onSelect }: { onSelect: (track: MusicTrack) => void }) {
   const [error, setError] = useState('');
   const [playingId, setPlayingId] = useState<string | null>(null);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const previewContainerRef = useRef<HTMLDivElement | null>(null);
 
   const fetchTracks = useCallback(async (q: string) => {
     if (!q.trim()) {
@@ -191,10 +193,17 @@ function SpotifyTab({ onSelect }: { onSelect: (track: MusicTrack) => void }) {
   }, [searchQuery, fetchTracks]);
 
   const togglePreview = (track: SpotifySearchResult) => {
-    setPlayingId((prev) => (prev === track.id ? null : track.id));
+    if (playingId === track.id) {
+      stopSpotifyPlayback();
+      setPlayingId(null);
+    } else {
+      setPlayingId(track.id);
+      loadSpotifyAndPlay(track.id, previewContainerRef);
+    }
   };
 
   const handleSelect = (track: SpotifySearchResult) => {
+    stopSpotifyPlayback();
     setPlayingId(null);
     const spotifyTrack: SpotifyTrack = {
       id: createId(),
@@ -213,6 +222,12 @@ function SpotifyTab({ onSelect }: { onSelect: (track: MusicTrack) => void }) {
 
   return (
     <>
+      {/* Hidden container for Spotify IFrame API preview playback */}
+      <div
+        ref={previewContainerRef}
+        style={{ position: 'fixed', top: -9999, left: -9999, width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none' }}
+      />
+
       {/* Search */}
       <div className="border-b border-gray-100 px-6 py-3">
         <div className="relative">
@@ -305,20 +320,6 @@ function SpotifyTab({ onSelect }: { onSelect: (track: MusicTrack) => void }) {
                     Select
                   </Button>
                 </div>
-                {/* Spotify embed preview */}
-                {playingId === track.id && (
-                  <div className="overflow-hidden rounded-xl">
-                    <iframe
-                      src={`https://open.spotify.com/embed/track/${track.id}?utm_source=generator&theme=0&autoplay=1`}
-                      width="100%"
-                      height={80}
-                      frameBorder="0"
-                      allow="autoplay; clipboard-write; encrypted-media"
-                      loading="lazy"
-                      title={`Preview ${track.name}`}
-                    />
-                  </div>
-                )}
               </div>
             ))}
           </div>

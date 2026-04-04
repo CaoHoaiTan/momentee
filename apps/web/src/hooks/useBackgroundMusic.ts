@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { BackgroundMusicConfig, MusicTrack } from '../lib/music-config';
-import { loadSpotifyAndPlay } from '../lib/spotify-player';
 
 const STORAGE_KEY = (slug: string) => `music-pref-${slug}`;
 
@@ -41,8 +40,6 @@ export interface BackgroundMusicState {
   next: () => void;
   prev: () => void;
   dismissInteraction: () => void;
-  playSpotify: () => void;
-  spotifyContainerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export function useBackgroundMusic(
@@ -237,15 +234,6 @@ export function useBackgroundMusic(
     setTrackIndex((i) => (i - 1 + Math.max(1, tracks.length)) % Math.max(1, tracks.length));
   }, [tracks.length]);
 
-  const spotifyContainerRef = useRef<HTMLDivElement | null>(null);
-
-  const playSpotify = useCallback(() => {
-    if (!currentTrack || currentTrack.source !== 'spotify') return;
-    loadSpotifyAndPlay(currentTrack.spotifyId, spotifyContainerRef);
-    setIsPlaying(true);
-    setNeedsInteraction(false);
-  }, [currentTrack]);
-
   const dismissInteraction = useCallback(() => {
     setNeedsInteraction(false);
   }, []);
@@ -271,7 +259,5 @@ export function useBackgroundMusic(
     next,
     prev,
     dismissInteraction,
-    playSpotify,
-    spotifyContainerRef,
   };
 }
