@@ -133,7 +133,7 @@ export async function update(
   userId: string,
   input: UpdateCoupleInput,
 ) {
-  const couple = await getById(coupleId);
+  const couple = await getById(coupleId, userId);
   verifyOwnership(couple, userId);
 
   const updateData: Record<string, unknown> = {};
@@ -184,7 +184,7 @@ export async function update(
           }
         }
         // Enforce plan limit
-        const currentCouple = await getById(coupleId);
+        const currentCouple = await getById(coupleId, userId);
         const planLimits = PLAN_LIMITS[currentCouple.plan];
         const musicLimit = planLimits.music_tracks as number;
         if (musicLimit >= 0 && tracks.length > musicLimit) {
@@ -221,7 +221,7 @@ export async function update(
 }
 
 export async function remove(coupleId: string, userId: string) {
-  const couple = await getById(coupleId);
+  const couple = await getById(coupleId, userId);
   verifyOwnership(couple, userId);
 
   await db.deleteFrom('couples').where('id', '=', coupleId).execute();
