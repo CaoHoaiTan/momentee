@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useMutation, useQuery, useApolloClient } from '@apollo/client/react';
-import { LOGIN_MUTATION, REGISTER_MUTATION, LOGOUT_MUTATION } from '../graphql/mutations/auth.mutations';
+import { LOGIN_MUTATION, REGISTER_MUTATION, LOGOUT_MUTATION, GOOGLE_LOGIN_MUTATION } from '../graphql/mutations/auth.mutations';
 import { ME_QUERY } from '../graphql/queries/user.queries';
 
 interface User {
@@ -12,6 +12,7 @@ interface User {
   avatar: string | null;
   role: string;
   plan: string;
+  emailVerified: boolean;
 }
 
 interface MeData {
@@ -32,12 +33,17 @@ interface RegisterData {
   register: AuthData;
 }
 
+interface GoogleLoginData {
+  googleLogin: AuthData;
+}
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
+  googleLogin: (idToken: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -52,6 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loginMutation] = useMutation<LoginData>(LOGIN_MUTATION);
   const [registerMutation] = useMutation<RegisterData>(REGISTER_MUTATION);
   const [logoutMutation] = useMutation(LOGOUT_MUTATION);
+  const [googleLoginMutation] = useMutation<GoogleLoginData>(GOOGLE_LOGIN_MUTATION);
 
   useEffect(() => {
     const token = localStorage.getItem('momentee_access_token');
@@ -106,6 +113,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [registerMutation],
   );
 
+  const googleLogin = useCallback(
+    async (idToken: string) => {
+      const { data } = await googleLoginMutation({
+        variables: { idToken },
+      });
+
+      if (data?.googleLogin) {
+        localStorage.setItem('momentee_access_token', data.googleLogin.accessToken);
+        localStorage.setItem('momentee_refresh_token', data.googleLogin.refreshToken);
+        setUser(data.googleLogin.user);
+      }
+    },
+    [googleLoginMutation],
+  );
+
   const logout = useCallback(() => {
     // Best-effort server-side token invalidation
     logoutMutation().catch(() => {});
@@ -118,7 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAuthenticated = !!user;
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAuthenticated, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, isAuthenticated, login, register, googleLogin, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -20,6 +20,7 @@ const envSchema = z.object({
   STRIPE_PRICE_PREMIUM_PLUS: z.string().optional(),
   SPOTIFY_CLIENT_ID: z.string().optional(),
   SPOTIFY_CLIENT_SECRET: z.string().optional(),
+  GOOGLE_CLIENT_ID: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);

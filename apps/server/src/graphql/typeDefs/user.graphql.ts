@@ -10,6 +10,7 @@ export const userTypeDefs = gql`
     avatar: String
     role: UserRole!
     plan: PlanType!
+    emailVerified: Boolean!
     couples: [Couple!]!
     createdAt: DateTime!
   }

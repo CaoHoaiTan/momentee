@@ -1,5 +1,6 @@
 import { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } from '@momentee/shared';
 import * as authService from '../../services/auth.service.js';
+import { requireAuth } from '../../utils/errors.js';
 import type { GQLContext } from '../context.js';
 
 export const authResolvers = {
@@ -41,6 +42,19 @@ export const authResolvers = {
     resetPassword: async (_parent: unknown, args: { token: string; password: string }) => {
       const validated = resetPasswordSchema.parse(args);
       return authService.resetPassword(validated.token, validated.password);
+    },
+
+    googleLogin: async (_parent: unknown, args: { idToken: string }) => {
+      return authService.googleLogin(args.idToken);
+    },
+
+    requestEmailVerification: async (_parent: unknown, _args: unknown, context: GQLContext) => {
+      requireAuth(context);
+      return authService.requestEmailVerification(context.user.userId);
+    },
+
+    verifyEmail: async (_parent: unknown, args: { token: string }) => {
+      return authService.verifyEmail(args.token);
     },
   },
 };

@@ -39,6 +39,7 @@ export const userResolvers = {
 
   User: {
     createdAt: (parent: { created_at: Date }) => parent.created_at,
+    emailVerified: (parent: { email_verified: boolean }) => parent.email_verified,
     couples: async (parent: { id: string }) => {
       return db
         .selectFrom('couples')

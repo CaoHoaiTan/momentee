@@ -19,6 +19,8 @@ export interface UsersTable {
   refresh_token: string | null;
   reset_token: string | null;
   reset_token_expires_at: Date | null;
+  email_verification_token: string | null;
+  email_verification_token_expires_at: Date | null;
   created_at: Created;
   updated_at: Updated;
 }

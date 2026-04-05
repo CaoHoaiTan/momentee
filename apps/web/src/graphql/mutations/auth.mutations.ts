@@ -12,6 +12,7 @@ export const REGISTER_MUTATION = gql`
         avatar
         role
         plan
+        emailVerified
       }
     }
   }
@@ -29,6 +30,7 @@ export const LOGIN_MUTATION = gql`
         avatar
         role
         plan
+        emailVerified
       }
     }
   }
@@ -46,6 +48,7 @@ export const REFRESH_TOKEN_MUTATION = gql`
         avatar
         role
         plan
+        emailVerified
       }
     }
   }
@@ -66,5 +69,47 @@ export const FORGOT_PASSWORD_MUTATION = gql`
 export const RESET_PASSWORD_MUTATION = gql`
   mutation ResetPassword($token: String!, $password: String!) {
     resetPassword(token: $token, password: $password)
+  }
+`;
+
+export const GOOGLE_LOGIN_MUTATION = gql`
+  mutation GoogleLogin($idToken: String!) {
+    googleLogin(idToken: $idToken) {
+      accessToken
+      refreshToken
+      user {
+        id
+        email
+        name
+        avatar
+        role
+        plan
+        emailVerified
+      }
+    }
+  }
+`;
+
+export const REQUEST_EMAIL_VERIFICATION_MUTATION = gql`
+  mutation RequestEmailVerification {
+    requestEmailVerification
+  }
+`;
+
+export const VERIFY_EMAIL_MUTATION = gql`
+  mutation VerifyEmail($token: String!) {
+    verifyEmail(token: $token) {
+      accessToken
+      refreshToken
+      user {
+        id
+        email
+        name
+        avatar
+        role
+        plan
+        emailVerified
+      }
+    }
   }
 `;

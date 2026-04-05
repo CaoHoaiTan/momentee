@@ -25,5 +25,8 @@ export const authTypeDefs = gql`
     logout: Boolean!
     forgotPassword(email: String!): Boolean!
     resetPassword(token: String!, password: String!): Boolean!
+    googleLogin(idToken: String!): AuthPayload!
+    requestEmailVerification: Boolean!
+    verifyEmail(token: String!): AuthPayload!
   }
 `;

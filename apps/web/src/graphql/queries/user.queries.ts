@@ -9,6 +9,7 @@ export const ME_QUERY = gql`
       avatar
       role
       plan
+      emailVerified
     }
   }
 `;
