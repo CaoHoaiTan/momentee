@@ -75,7 +75,8 @@ export default function PricingContent() {
 
   // Wait for auth + couple data before rendering plan cards
   const dataReady = !authLoading && (!isAuthenticated || !coupleLoading);
-  const currentPlan = couple?.plan ?? null;
+  // GraphQL returns enum values like 'FREE', 'PREMIUM', 'PREMIUM_PLUS' — normalize to lowercase
+  const currentPlan = couple?.plan?.toLowerCase() ?? null;
 
   const handleUpgrade = async (planKey: string) => {
     if (!isAuthenticated || !couple) {
