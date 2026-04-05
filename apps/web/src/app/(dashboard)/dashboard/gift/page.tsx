@@ -182,24 +182,25 @@ export default function GiftPage() {
                 </div>
               )}
               <div className="p-5">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{account.bankName}</h3>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate font-semibold text-gray-900">{account.bankName}</h3>
                     <div className="mt-2 space-y-1 text-sm text-gray-600">
-                      <p>
-                        Account: <span className="font-mono font-medium">{account.accountNumber}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="shrink-0 text-gray-400">Account:</span>
+                        <span className="truncate font-mono font-medium">{account.accountNumber}</span>
                         <button
                           onClick={() => copyToClipboard(account.accountNumber ?? '')}
-                          className="ml-2 text-[var(--color-coral)] hover:underline"
+                          className="shrink-0 text-[var(--color-coral)] hover:underline"
                         >
                           Copy
                         </button>
-                      </p>
-                      {account.accountHolder && <p>Holder: {account.accountHolder}</p>}
-                      {account.note && <p className="text-gray-400">{account.note}</p>}
+                      </div>
+                      {account.accountHolder && <p className="truncate">Holder: {account.accountHolder}</p>}
+                      {account.note && <p className="line-clamp-2 text-gray-400">{account.note}</p>}
                     </div>
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex shrink-0 gap-1">
                     <Button variant="ghost" size="sm" onClick={() => openEditForm(account)}>
                       Edit
                     </Button>

@@ -29,9 +29,13 @@ interface SectionReorderProps {
 export function SectionReorder({ value, onChange }: SectionReorderProps) {
   const [dragIdx, setDragIdx] = useState<number | null>(null);
 
-  const sections = value.length > 0
-    ? value.map((id) => DEFAULT_SECTIONS.find((s) => s.id === id)).filter(Boolean) as Section[]
-    : DEFAULT_SECTIONS;
+  const sections = (() => {
+    if (value.length === 0) return DEFAULT_SECTIONS;
+    const fromSaved = value.map((id) => DEFAULT_SECTIONS.find((s) => s.id === id)).filter(Boolean) as Section[];
+    // Append any new sections not in saved order
+    const missing = DEFAULT_SECTIONS.filter((s) => !value.includes(s.id));
+    return [...fromSaved, ...missing];
+  })();
 
   const moveUp = (idx: number) => {
     if (idx <= 0) return;
