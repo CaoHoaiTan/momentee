@@ -209,10 +209,10 @@ export default function AlbumsPage() {
             </svg>
             Back
           </Button>
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-900">{currentSelected.title}</h1>
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-3xl font-bold text-gray-900">{currentSelected.title}</h1>
             {currentSelected.description && (
-              <p className="mt-1 text-gray-500">{currentSelected.description}</p>
+              <p className="mt-1 line-clamp-2 text-gray-500">{currentSelected.description}</p>
             )}
           </div>
           <Button variant="ghost" size="sm" onClick={() => openEditForm(currentSelected)}>Edit</Button>

@@ -132,11 +132,11 @@ export default function EventsPage() {
           {events.map((event) => (
             <div key={event.id} className="group relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition-shadow hover:shadow-md">
               <div className="p-5">
-                <h3 className="text-lg font-semibold text-gray-900">{event.title}</h3>
+                <h3 className="truncate text-lg font-semibold text-gray-900">{event.title}</h3>
                 {event.description && <p className="mt-1 line-clamp-2 text-sm text-gray-500">{event.description}</p>}
                 <div className="mt-3 space-y-1 text-sm text-gray-500">
-                  <p>📅 {new Date(event.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
-                  {event.location && <p>📍 {event.location}</p>}
+                  <p className="truncate">📅 {new Date(event.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                  {event.location && <p className="truncate">📍 {event.location}</p>}
                   <p>👥 {getAttendeeCount(event)} attending{event.maxGuests ? ` / ${event.maxGuests} max` : ''}</p>
                 </div>
                 <div className="mt-4 flex gap-2">

@@ -53,11 +53,11 @@ export function WishCard({ wish, onDelete, isOwner = false }: WishCardProps) {
       )}
 
       <div className="flex items-start gap-3">
-        {wish.emoji && <span className="text-2xl">{wish.emoji}</span>}
-        <div className="flex-1">
-          <p className="text-sm" style={{ color: 'var(--theme-text)' }}>{wish.message}</p>
+        {wish.emoji && <span className="shrink-0 text-2xl">{wish.emoji}</span>}
+        <div className="min-w-0 flex-1">
+          <p className="line-clamp-4 text-sm" style={{ color: 'var(--theme-text)' }}>{wish.message}</p>
           <div className="mt-2 flex items-center gap-2">
-            <span className="text-xs font-medium" style={{ color: 'var(--theme-text-muted)' }}>
+            <span className="truncate text-xs font-medium" style={{ color: 'var(--theme-text-muted)' }}>
               {wish.isAnonymous ? 'Anonymous' : wish.authorName}
             </span>
             <span className="text-xs" style={{ opacity: 0.3, color: 'var(--theme-text-muted)' }}>·</span>

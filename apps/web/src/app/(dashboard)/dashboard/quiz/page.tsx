@@ -184,13 +184,13 @@ export default function QuizPage() {
                   selectedQuiz === quiz.id ? 'ring-[var(--color-coral)]' : 'ring-gray-100'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-gray-900">{quiz.title}</h3>
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${quiz.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="min-w-0 truncate font-semibold text-gray-900">{quiz.title}</h3>
+                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${quiz.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                     {quiz.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </div>
-                {quiz.description && <p className="mt-1 text-sm text-gray-500">{quiz.description}</p>}
+                {quiz.description && <p className="mt-1 line-clamp-2 text-sm text-gray-500">{quiz.description}</p>}
                 <div className="mt-3 flex items-center gap-2">
                   {quizzes.length > 1 && (
                     <div className="flex gap-0.5">
@@ -230,8 +230,8 @@ export default function QuizPage() {
                 <div className="space-y-2">
                   {leaderboard.map((entry, i) => (
                     <div key={entry.id} className="flex items-center gap-3 rounded-xl bg-gray-50 px-4 py-2">
-                      <span className="text-lg font-bold text-gray-400">#{i + 1}</span>
-                      <span className="flex-1 text-sm font-medium text-gray-700">{entry.respondentName}</span>
+                      <span className="shrink-0 text-lg font-bold text-gray-400">#{i + 1}</span>
+                      <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-700">{entry.respondentName}</span>
                       <span className="text-sm font-semibold text-[var(--color-coral)]">
                         {entry.score}/{entry.totalQuestions}
                       </span>
