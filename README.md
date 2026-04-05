@@ -37,17 +37,21 @@ Momentee gives every couple a beautiful, shareable page at `momentee.app/your-sl
 | **Events & RSVP** | Create events, collect guest RSVPs with plus-one and dietary notes |
 | **Quiz Game** | "How well do you know us?" quizzes with auto-scoring and leaderboards |
 | **Gift Registry** | Display bank accounts for monetary gifts with one-tap copy |
-| **Wishes Wall** | Receive heartfelt messages and blessings from friends & family |
+| **Wishes Wall** | Receive heartfelt messages and blessings from friends & family (moderated) |
+| **Background Music** | Add Spotify tracks to your couple page with built-in player |
+| **Custom Styling** | Customize your page with themes and custom CSS |
+| **QR Share** | Generate QR code for easy sharing of your couple page |
 | **Notifications** | Real-time bell icon with unread count for new wishes, RSVPs, comments |
 | **Settings** | Edit profile, theme, slug, privacy, partner invite code |
 
 ### For Visitors (No Login Required)
 
-- Send wishes with emoji to any couple's public page
+- Send wishes with emoji to any couple's public page (pending approval)
 - RSVP to events with plus-one and dietary preferences
 - Take "How well do you know us?" quizzes
 - Leave comments and reactions on posts
 - Browse and discover couples on the Explore page
+- Listen to background music on couple pages
 
 ### Platform
 
@@ -69,6 +73,7 @@ Momentee gives every couple a beautiful, shareable page at `momentee.app/your-sl
 | **Database** | PostgreSQL 16, Kysely (query builder) | Type-safe SQL, relational, full control |
 | **Auth** | Custom JWT (access + refresh tokens), bcryptjs | Full control, no vendor lock-in |
 | **Media** | Cloudinary (base64 upload from GraphQL) | CDN, transforms, no separate upload step |
+| **Music** | Spotify Web API, custom audio player | Background music on couple pages |
 | **Shared** | TypeScript, Zod schemas, shared constants | Type safety across frontend & backend |
 | **Tooling** | Yarn v4 (Berry), Turborepo, Rollup, ESLint 9, Prettier | Fast builds, consistent formatting |
 | **Infra** | Docker Compose (Postgres + Redis) | One-command local dev |
@@ -83,35 +88,37 @@ momentee/
 │   ├── server/                  # Express + Apollo Server (GraphQL API)
 │   │   └── src/
 │   │       ├── config/          # database, env, cloudinary
-│   │       ├── db/              # migrations (001-013), types, seed
+│   │       ├── db/              # migrations (001-017), types, seed
 │   │       ├── graphql/
 │   │       │   ├── typeDefs/    # 15 GraphQL schema modules
 │   │       │   └── resolvers/   # 15 resolver modules
-│   │       ├── services/        # Business logic (12 services)
-│   │       ├── routes/          # REST: health, webhooks, uploads
-│   │       └── utils/           # JWT, errors, cloudinary helpers
+│   │       ├── services/        # Business logic (15 services)
+│   │       ├── routes/          # REST: health, webhooks, uploads, music
+│   │       └── utils/           # JWT, errors, cloudinary, rate-limiter
 │   │
 │   └── web/                     # Next.js 16 Frontend
 │       └── src/
-│           ├── app/             # 19 routes (App Router)
+│           ├── app/             # 21 routes (App Router)
 │           │   ├── (auth)/      # login, register, forgot-password
-│           │   ├── (dashboard)/ # dashboard + 7 feature pages
-│           │   ├── [slug]/      # dynamic public couple pages
+│           │   ├── (dashboard)/ # dashboard + 8 feature pages
+│           │   ├── [slug]/      # dynamic public couple pages (with OG meta)
 │           │   ├── admin/       # admin panel
 │           │   ├── explore/     # discover couples
 │           │   └── pricing/     # pricing plans
 │           ├── components/
 │           │   ├── ui/          # Button, Input, Card, Modal, Spinner
 │           │   ├── layout/      # Navbar, Sidebar, Footer, NotificationBell
-│           │   └── couple/      # Gallery, Timeline, PostCard, WishForm, etc.
-│           ├── graphql/         # 24 query/mutation files (12 modules)
+│           │   ├── couple/      # Gallery, Timeline, PostCard, MusicPlayer, etc.
+│           │   └── settings/    # MusicSettings, MusicPicker, ClipSelector
+│           ├── graphql/         # 27 query/mutation files (15 modules)
 │           ├── hooks/           # useAuth, useCouple
-│           └── lib/             # Apollo Client, Auth Context
+│           └── lib/             # Apollo Client, Auth Context, Toast
 │
 ├── packages/
 │   └── shared/                  # Shared types, Zod schemas, constants, utils
 │
-├── e2e/                         # Playwright end-to-end tests (28 tests)
+├── docs/                        # Audit plan and documentation
+├── e2e/                         # Playwright end-to-end tests
 ├── docker-compose.yml           # Local dev: Postgres + Redis
 ├── turbo.json                   # Turborepo build pipeline
 └── PLAN.md                      # Full implementation plan (12 phases)
@@ -197,7 +204,7 @@ yarn format:check           # Prettier check (CI)
 yarn turbo run typecheck    # TypeScript check all workspaces
 
 # ─── Testing ─────────────────────────────────────────────
-npx playwright test         # Run all 28 e2e tests
+npx playwright test         # Run all e2e tests
 npx playwright test --ui    # Interactive test runner
 ```
 
@@ -221,9 +228,9 @@ Browser → Next.js (SSR/CSR) → Apollo Client → HTTP → Express → Apollo 
 
 | Module | Queries | Mutations | Auth Required |
 |--------|---------|-----------|---------------|
-| Auth | — | register, login, refreshToken, logout | No |
+| Auth | — | register, login, refreshToken, logout, forgotPassword, resetPassword | No |
 | User | me | — | Yes |
-| Couple | couple, coupleBySlug | createCouple, updateCouple, acceptInvite | Mixed |
+| Couple | couple, coupleById, myCouple | createCouple, updateCouple, deleteCouple, acceptInvite, incrementViewCount | Mixed |
 | Milestone | milestones, milestone | create, update, delete, reorder | Yes |
 | Post | posts, post | createPost, deletePost | Yes |
 | Wish | wishes, wish | createWish, deleteWish, approveWish | Mixed |
@@ -236,7 +243,7 @@ Browser → Next.js (SSR/CSR) → Apollo Client → HTTP → Express → Apollo 
 | Explore | exploreCouples, trendingCouples | — | No |
 | Admin | adminStats, adminUsers, adminCouples | adminDeleteUser, adminDeleteCouple, adminUpdateRole | Admin |
 
-### Database Schema (16+ tables)
+### Database Schema (18 tables)
 
 ```sql
 -- Core

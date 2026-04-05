@@ -1176,6 +1176,7 @@ __metadata:
     morgan: "npm:^1.10.0"
     pg: "npm:^8.13.0"
     rollup: "npm:^4.30.0"
+    stripe: "npm:^22.0.0"
     tsx: "npm:^4.19.0"
     typescript: "npm:^5.7.0"
     ws: "npm:^8.18.0"
@@ -7192,6 +7193,18 @@ __metadata:
   version: 3.1.1
   resolution: "strip-json-comments@npm:3.1.1"
   checksum: 10c0/9681a6257b925a7fa0f285851c0e613cc934a50661fa7bb41ca9cbbff89686bb4a0ee366e6ecedc4daafd01e83eee0720111ab294366fe7c185e935475ebcecd
+  languageName: node
+  linkType: hard
+
+"stripe@npm:^22.0.0":
+  version: 22.0.0
+  resolution: "stripe@npm:22.0.0"
+  peerDependencies:
+    "@types/node": ">=18"
+  peerDependenciesMeta:
+    "@types/node":
+      optional: true
+  checksum: 10c0/b4653848d9de41c4586e9ee4fa0aaf4388b7427f622d830faeccf95eff995003019bc01db8b55b1e4bdbc387671ea30d2914e4b33c1d71a343a094f1823665ea
   languageName: node
   linkType: hard
 

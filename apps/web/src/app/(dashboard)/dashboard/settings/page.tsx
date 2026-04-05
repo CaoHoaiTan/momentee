@@ -7,6 +7,7 @@ import { useToast } from '../../../../lib/toast-context';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useCouple } from '../../../../hooks/useCouple';
 import { UPDATE_COUPLE, DELETE_COUPLE } from '../../../../graphql/mutations/couple.mutations';
+import { CREATE_CHECKOUT_SESSION, CREATE_BILLING_PORTAL } from '../../../../graphql/mutations/billing.mutations';
 import { GET_MY_COUPLE } from '../../../../graphql/queries/couple.queries';
 import { Button } from '../../../../components/ui/button';
 import { Input } from '../../../../components/ui/input';
@@ -57,6 +58,13 @@ export default function SettingsPage() {
   });
 
   const [deleteCouple, { loading: deleting }] = useMutation(DELETE_COUPLE, {
+    onError: (error) => showError(error.message),
+  });
+
+  const [createCheckout, { loading: checkingOut }] = useMutation<{ createCheckoutSession: string }>(CREATE_CHECKOUT_SESSION, {
+    onError: (error) => showError(error.message),
+  });
+  const [createPortal] = useMutation<{ createBillingPortal: string }>(CREATE_BILLING_PORTAL, {
     onError: (error) => showError(error.message),
   });
 
@@ -254,6 +262,60 @@ export default function SettingsPage() {
           <CssEditor value={customCss} onChange={setCustomCss} />
         </Card>
       )}
+
+      {/* Billing & Plan */}
+      <Card>
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">Plan & Billing</h2>
+        <div className="flex items-center justify-between rounded-xl bg-gray-50 p-4">
+          <div>
+            <p className="text-sm font-medium text-gray-700">
+              Current Plan: <span className="font-bold capitalize text-[var(--color-coral)]">{couple.plan.replace('_', ' ')}</span>
+            </p>
+            <p className="mt-1 text-xs text-gray-500">
+              {couple.plan === 'free'
+                ? 'Upgrade for more features and higher limits.'
+                : 'Manage your subscription and payment method.'}
+            </p>
+          </div>
+          {couple.plan === 'free' ? (
+            <Button
+              variant="primary"
+              size="sm"
+              loading={checkingOut}
+              onClick={async () => {
+                const { data } = await createCheckout({
+                  variables: { coupleId: couple.id, plan: 'premium' },
+                });
+                if (data?.createCheckoutSession) {
+                  window.location.href = data.createCheckoutSession;
+                }
+              }}
+            >
+              Upgrade
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                const { data } = await createPortal({
+                  variables: { coupleId: couple.id },
+                });
+                if (data?.createBillingPortal) {
+                  window.location.href = data.createBillingPortal;
+                }
+              }}
+            >
+              Manage Billing
+            </Button>
+          )}
+        </div>
+        {couple.plan === 'free' && (
+          <p className="mt-3 text-center text-xs text-gray-400">
+            <a href="/pricing" className="text-[var(--color-coral)] hover:underline">Compare plans</a>
+          </p>
+        )}
+      </Card>
 
       {/* Privacy */}
       <Card>

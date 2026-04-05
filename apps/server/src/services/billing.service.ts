@@ -1,6 +1,7 @@
 import { createId } from '@paralleldrive/cuid2';
 import { db } from '../config/database.js';
 import { env } from '../config/env.js';
+import { getStripe, isStripeConfigured, STRIPE_PRICES } from '../config/stripe.js';
 import { NotFoundError, ForbiddenError, ValidationError } from '../utils/errors.js';
 import { PLAN_LIMITS } from '@momentee/shared';
 
@@ -110,7 +111,6 @@ export async function upgradePlan(
 ) {
   await verifyCoupleOwnership(coupleId, userId);
 
-  // Update subscription
   const sub = await createOrGetSubscription(coupleId);
   await db
     .updateTable('subscriptions')
@@ -118,7 +118,6 @@ export async function upgradePlan(
     .where('id', '=', sub.id)
     .execute();
 
-  // Update couple plan
   await db
     .updateTable('couples')
     .set({ plan, updated_at: new Date() as any })
@@ -151,13 +150,16 @@ export async function downgradePlan(coupleId: string, userId?: string) {
     .execute();
 }
 
-// ─── Stripe integration stubs ───────────────────────────────────────
-// These will work when STRIPE_SECRET_KEY is configured in env
+// ─── Stripe integration ────────────────────────────────────────────
 
-export async function createCheckoutUrl(coupleId: string, userId: string, plan: 'premium' | 'premium_plus'): Promise<string> {
+export async function createCheckoutUrl(
+  coupleId: string,
+  userId: string,
+  plan: 'premium' | 'premium_plus',
+): Promise<string> {
   await verifyCoupleOwnership(coupleId, userId);
 
-  if (!env.STRIPE_SECRET_KEY) {
+  if (!isStripeConfigured()) {
     if (env.NODE_ENV === 'production') {
       throw ValidationError('Payment system is not configured. Please contact support.');
     }
@@ -166,23 +168,197 @@ export async function createCheckoutUrl(coupleId: string, userId: string, plan: 
     return '/dashboard/settings?upgraded=true';
   }
 
-  // Stripe checkout session would be created here
-  // const stripe = new Stripe(env.STRIPE_SECRET_KEY);
-  // const session = await stripe.checkout.sessions.create({...});
-  // return session.url;
-  return '/dashboard/settings?upgraded=true';
+  const stripe = getStripe();
+  const priceId = STRIPE_PRICES[plan];
+  if (!priceId) {
+    throw ValidationError(`Price not configured for plan: ${plan}`);
+  }
+
+  // Get or create Stripe customer
+  const sub = await createOrGetSubscription(coupleId);
+  let customerId = sub.stripe_customer_id;
+
+  if (!customerId) {
+    const user = await db
+      .selectFrom('users')
+      .select(['email', 'name'])
+      .where('id', '=', userId)
+      .executeTakeFirstOrThrow();
+
+    const customer = await stripe.customers.create({
+      email: user.email,
+      name: user.name,
+      metadata: { coupleId, userId },
+    });
+    customerId = customer.id;
+
+    await db
+      .updateTable('subscriptions')
+      .set({ stripe_customer_id: customerId })
+      .where('id', '=', sub.id)
+      .execute();
+  }
+
+  const origin = env.CORS_ORIGIN;
+  const session = await stripe.checkout.sessions.create({
+    customer: customerId,
+    mode: 'subscription',
+    line_items: [{ price: priceId, quantity: 1 }],
+    success_url: `${origin}/dashboard/settings?upgraded=true`,
+    cancel_url: `${origin}/dashboard/settings?canceled=true`,
+    metadata: { coupleId, userId, plan },
+    subscription_data: {
+      metadata: { coupleId, plan },
+    },
+  });
+
+  return session.url || '/dashboard/settings';
 }
 
-export async function createBillingPortalUrl(coupleId: string, userId: string): Promise<string> {
+export async function createBillingPortalUrl(
+  coupleId: string,
+  userId: string,
+): Promise<string> {
   await verifyCoupleOwnership(coupleId, userId);
 
-  if (!env.STRIPE_SECRET_KEY) {
+  if (!isStripeConfigured()) {
     return '/dashboard/settings';
   }
 
-  // Stripe billing portal would be created here
-  return '/dashboard/settings';
+  const stripe = getStripe();
+  const sub = await getSubscription(coupleId);
+
+  if (!sub?.stripe_customer_id) {
+    return '/dashboard/settings';
+  }
+
+  const origin = env.CORS_ORIGIN;
+  const session = await stripe.billingPortal.sessions.create({
+    customer: sub.stripe_customer_id,
+    return_url: `${origin}/dashboard/settings`,
+  });
+
+  return session.url;
 }
+
+// ─── Stripe webhook handler ────────────────────────────────────────
+
+export async function handleStripeWebhook(payload: Buffer, signature: string) {
+  const stripe = getStripe();
+
+  if (!env.STRIPE_WEBHOOK_SECRET) {
+    throw new Error('STRIPE_WEBHOOK_SECRET not configured');
+  }
+
+  const event = stripe.webhooks.constructEvent(
+    payload,
+    signature,
+    env.STRIPE_WEBHOOK_SECRET,
+  );
+
+  switch (event.type) {
+    case 'checkout.session.completed': {
+      const session = event.data.object;
+      const coupleId = session.metadata?.coupleId;
+      const plan = session.metadata?.plan as 'premium' | 'premium_plus' | undefined;
+      const stripeSubscriptionId = session.subscription as string | undefined;
+
+      if (coupleId && plan && stripeSubscriptionId) {
+        const sub = await createOrGetSubscription(coupleId);
+
+        await db
+          .updateTable('subscriptions')
+          .set({
+            plan,
+            status: 'active',
+            stripe_subscription_id: stripeSubscriptionId,
+            stripe_customer_id: session.customer as string,
+            updated_at: new Date() as any,
+          })
+          .where('id', '=', sub.id)
+          .execute();
+
+        await db
+          .updateTable('couples')
+          .set({ plan, updated_at: new Date() as any })
+          .where('id', '=', coupleId)
+          .execute();
+      }
+      break;
+    }
+
+    case 'customer.subscription.updated': {
+      const subscription = event.data.object as Record<string, unknown>;
+      const metadata = subscription.metadata as Record<string, string> | undefined;
+      const coupleId = metadata?.coupleId;
+
+      if (coupleId) {
+        const subStatus = subscription.status as string;
+        const status = subStatus === 'active' ? 'active'
+          : subStatus === 'past_due' ? 'past_due'
+          : subStatus === 'trialing' ? 'trialing'
+          : 'canceled';
+
+        const periodStart = subscription.current_period_start as number | undefined;
+        const periodEnd = subscription.current_period_end as number | undefined;
+
+        await db
+          .updateTable('subscriptions')
+          .set({
+            status,
+            ...(periodStart ? { current_period_start: new Date(periodStart * 1000).toISOString() } : {}),
+            ...(periodEnd ? { current_period_end: new Date(periodEnd * 1000).toISOString() } : {}),
+            updated_at: new Date() as any,
+          })
+          .where('couple_id', '=', coupleId)
+          .execute();
+      }
+      break;
+    }
+
+    case 'customer.subscription.deleted': {
+      const subscription = event.data.object as Record<string, unknown>;
+      const metadata = subscription.metadata as Record<string, string> | undefined;
+      const coupleId = metadata?.coupleId;
+
+      if (coupleId) {
+        await db
+          .updateTable('subscriptions')
+          .set({
+            plan: 'free',
+            status: 'canceled',
+            stripe_subscription_id: null,
+            updated_at: new Date() as any,
+          })
+          .where('couple_id', '=', coupleId)
+          .execute();
+
+        await db
+          .updateTable('couples')
+          .set({ plan: 'free', updated_at: new Date() as any })
+          .where('id', '=', coupleId)
+          .execute();
+      }
+      break;
+    }
+
+    case 'invoice.payment_failed': {
+      const invoice = event.data.object as Record<string, unknown>;
+      const subscriptionId = invoice.subscription as string | undefined;
+
+      if (subscriptionId) {
+        await db
+          .updateTable('subscriptions')
+          .set({ status: 'past_due', updated_at: new Date() as any })
+          .where('stripe_subscription_id', '=', subscriptionId)
+          .execute();
+      }
+      break;
+    }
+  }
+}
+
+// ─── Helpers ───────────────────────────────────────────────────────
 
 async function verifyCoupleOwnership(coupleId: string, userId: string) {
   const couple = await db

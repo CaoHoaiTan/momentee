@@ -16,6 +16,8 @@ const envSchema = z.object({
   CLOUDINARY_URL: z.string().optional(),
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  STRIPE_PRICE_PREMIUM: z.string().optional(),
+  STRIPE_PRICE_PREMIUM_PLUS: z.string().optional(),
   SPOTIFY_CLIENT_ID: z.string().optional(),
   SPOTIFY_CLIENT_SECRET: z.string().optional(),
 });
