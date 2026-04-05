@@ -68,7 +68,7 @@ export default function PricingContent() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const { isAuthenticated } = useAuth();
-  const { couple } = useCouple();
+  const { couple, loading: coupleLoading } = useCouple();
   const { showError } = useToast();
   const [createCheckout] = useMutation<{ createCheckoutSession: string }>(CREATE_CHECKOUT_SESSION);
 
@@ -117,6 +117,17 @@ export default function PricingContent() {
           Start free, upgrade when you need more
         </p>
       </div>
+
+      {/* Current plan banner for logged-in users */}
+      {isAuthenticated && couple && !coupleLoading && (
+        <div className="mx-auto mt-8 flex max-w-md items-center gap-3 rounded-xl bg-[var(--color-teal)]/10 px-5 py-3 ring-1 ring-[var(--color-teal)]/20">
+          <span className="text-xl">✨</span>
+          <p className="text-sm text-gray-700">
+            You are on the <span className="font-bold capitalize text-[var(--color-teal)]">{couple.plan.replace('_', ' ')}</span> plan
+            {couple.plan !== 'premium_plus' && ' — upgrade for more features!'}
+          </p>
+        </div>
+      )}
 
       <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-3">
         {PLANS.map((plan) => (
@@ -178,10 +189,16 @@ export default function PricingContent() {
                 >
                   Current Plan
                 </Button>
-              ) : plan.key === 'free' ? (
+              ) : plan.key === 'free' && !isAuthenticated ? (
                 <Link href="/register">
                   <Button variant="ghost" size="md" className="w-full">
-                    {getCtaText(plan)}
+                    Get Started
+                  </Button>
+                </Link>
+              ) : plan.key === 'free' ? (
+                <Link href="/dashboard">
+                  <Button variant="ghost" size="md" className="w-full">
+                    Go to Dashboard
                   </Button>
                 </Link>
               ) : (
