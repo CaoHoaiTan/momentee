@@ -6,6 +6,7 @@ import { env } from '../config/env.js';
 import { hashPassword, comparePassword } from '../utils/password.js';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt.js';
 import { ValidationError } from '../utils/errors.js';
+import { sendEmail, verificationEmailHtml, passwordResetEmailHtml } from '../utils/email.js';
 
 interface RegisterInput {
   email: string;
@@ -176,12 +177,13 @@ export async function sendVerificationEmail(userId: string, email: string): Prom
     .where('id', '=', userId)
     .execute();
 
-  // TODO: Send email with verification link containing `token`
-  // For now, log token in development for testing
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`[DEV] Email verification token for ${email}: ${token}`);
-    console.log(`[DEV] Verify URL: ${env.CORS_ORIGIN}/verify-email?token=${token}`);
-  }
+  const verifyUrl = `${env.CORS_ORIGIN}/verify-email?token=${token}`;
+
+  await sendEmail({
+    to: email,
+    subject: 'Verify your Momentee email',
+    html: verificationEmailHtml(verifyUrl),
+  });
 
   return true;
 }
@@ -271,9 +273,13 @@ export async function requestPasswordReset(email: string): Promise<boolean> {
     .where('id', '=', user.id)
     .execute();
 
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`[DEV] Password reset token for ${email}: ${token}`);
-  }
+  const resetUrl = `${env.CORS_ORIGIN}/forgot-password?token=${token}`;
+
+  await sendEmail({
+    to: email,
+    subject: 'Reset your Momentee password',
+    html: passwordResetEmailHtml(resetUrl),
+  });
 
   return true;
 }

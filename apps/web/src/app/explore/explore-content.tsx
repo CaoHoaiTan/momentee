@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@apollo/client/react';
 import { EXPLORE_COUPLES } from '../../graphql/queries/explore.queries';
 import { LoadingSpinner } from '../../components/ui/loading-spinner';
+import { Navbar } from '../../components/layout/navbar';
+import { Footer } from '../../components/layout/footer';
 
 function useDebouncedValue<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState(value);
@@ -37,6 +39,8 @@ export default function ExploreContent() {
   const couples = data?.exploreCouples ?? [];
 
   return (
+    <>
+    <Navbar />
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="text-center">
         <h1 className="text-4xl font-bold text-gray-900">Explore Love Stories</h1>
@@ -105,5 +109,7 @@ export default function ExploreContent() {
         </div>
       )}
     </div>
+    <Footer />
+    </>
   );
 }
