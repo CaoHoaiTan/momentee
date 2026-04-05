@@ -7,6 +7,7 @@ export const quizTypeDefs = gql`
     title: String!
     description: String
     isActive: Boolean!
+    sortOrder: Int!
     questions: [QuizQuestion!]!
     createdAt: DateTime!
   }
