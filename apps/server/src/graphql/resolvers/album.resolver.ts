@@ -96,10 +96,20 @@ export const albumResolvers = {
       requireAuth(context);
       return albumService.reorderPhotos(args.albumId, context.user.userId, args.photoIds);
     },
+
+    reorderAlbums: async (
+      _parent: unknown,
+      args: { coupleId: string; albumIds: string[] },
+      context: GQLContext,
+    ) => {
+      requireAuth(context);
+      return albumService.reorderAlbums(args.coupleId, context.user.userId, args.albumIds);
+    },
   },
 
   Album: {
     coupleId: (parent: { couple_id: string }) => parent.couple_id,
+    sortOrder: (parent: { sort_order: number }) => parent.sort_order,
     coverPhoto: (parent: { cover_photo: string | null }) => parent.cover_photo,
     createdAt: (parent: { created_at: Date }) => parent.created_at,
     updatedAt: (parent: { updated_at: Date }) => parent.updated_at,

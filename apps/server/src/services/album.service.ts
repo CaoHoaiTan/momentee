@@ -95,10 +95,26 @@ export async function listByCoupleId(coupleId: string, limit = 50, offset = 0) {
     .selectFrom('albums')
     .selectAll()
     .where('couple_id', '=', coupleId)
-    .orderBy('created_at', 'desc')
+    .orderBy('sort_order', 'asc')
     .limit(limit)
     .offset(offset)
     .execute();
+}
+
+export async function reorderAlbums(coupleId: string, userId: string, albumIds: string[]) {
+  await verifyCoupleOwnership(coupleId, userId);
+
+  await Promise.all(
+    albumIds.map((id, i) =>
+      db.updateTable('albums')
+        .set({ sort_order: i })
+        .where('id', '=', id)
+        .where('couple_id', '=', coupleId)
+        .execute(),
+    ),
+  );
+
+  return true;
 }
 
 export async function update(id: string, userId: string, input: UpdateAlbumInput) {

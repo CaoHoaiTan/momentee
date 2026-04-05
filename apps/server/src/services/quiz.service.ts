@@ -68,8 +68,24 @@ export async function listQuizzesByCoupleId(coupleId: string) {
     .selectFrom('quizzes')
     .selectAll()
     .where('couple_id', '=', coupleId)
-    .orderBy('created_at', 'desc')
+    .orderBy('sort_order', 'asc')
     .execute();
+}
+
+export async function reorderQuizzes(coupleId: string, userId: string, quizIds: string[]) {
+  await verifyCoupleOwnership(coupleId, userId);
+
+  await Promise.all(
+    quizIds.map((id, i) =>
+      db.updateTable('quizzes')
+        .set({ sort_order: i })
+        .where('id', '=', id)
+        .where('couple_id', '=', coupleId)
+        .execute(),
+    ),
+  );
+
+  return true;
 }
 
 export async function getQuestions(quizId: string) {

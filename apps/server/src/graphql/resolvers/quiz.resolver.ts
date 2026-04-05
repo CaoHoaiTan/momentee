@@ -47,11 +47,21 @@ export const quizResolvers = {
       checkRateLimit(`${ip}:${args.quizId}`, 'submitQuiz', 5, 60 * 60 * 1000); // 5 per hour per IP per quiz
       return quizService.submitQuiz(args.quizId, args.input);
     },
+
+    reorderQuizzes: async (
+      _parent: unknown,
+      args: { coupleId: string; quizIds: string[] },
+      context: GQLContext,
+    ) => {
+      requireAuth(context);
+      return quizService.reorderQuizzes(args.coupleId, context.user.userId, args.quizIds);
+    },
   },
 
   Quiz: {
     coupleId: (parent: { couple_id: string }) => parent.couple_id,
     isActive: (parent: { is_active: boolean }) => parent.is_active,
+    sortOrder: (parent: { sort_order: number }) => parent.sort_order,
     createdAt: (parent: { created_at: Date }) => parent.created_at,
     questions: async (parent: { id: string }) => {
       return quizService.getQuestions(parent.id);

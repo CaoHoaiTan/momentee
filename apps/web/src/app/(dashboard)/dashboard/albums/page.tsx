@@ -13,6 +13,7 @@ import {
   DELETE_ALBUM,
   ADD_ALBUM_PHOTO,
   REMOVE_ALBUM_PHOTO,
+  REORDER_ALBUMS,
 } from '../../../../graphql/mutations/album.mutations';
 import { ConfirmModal } from '../../../../components/ui/confirm-modal';
 import { Button } from '../../../../components/ui/button';
@@ -82,6 +83,7 @@ export default function AlbumsPage() {
   const [deleteAlbum, { loading: deletingAlbum }] = useMutation(DELETE_ALBUM, { ...refetchConfig, onError: (error) => showError(error.message), onCompleted: () => showSuccess('Album deleted') });
   const [addPhoto] = useMutation(ADD_ALBUM_PHOTO, { ...refetchConfig, onError: (error) => showError(error.message) });
   const [removePhoto, { loading: deletingPhoto }] = useMutation(REMOVE_ALBUM_PHOTO, { ...refetchConfig, onError: (error) => showError(error.message) });
+  const [reorderAlbums] = useMutation(REORDER_ALBUMS, { ...refetchConfig, onError: (error) => showError(error.message) });
 
   if (authLoading || coupleLoading) {
     return <div className="flex min-h-[50vh] items-center justify-center"><LoadingSpinner size="lg" /></div>;
@@ -184,6 +186,16 @@ export default function AlbumsPage() {
     if (!deletePhotoId) return;
     await removePhoto({ variables: { id: deletePhotoId } });
     setDeletePhotoId(null);
+  };
+
+  const moveAlbum = async (idx: number, direction: -1 | 1) => {
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= albums.length) return;
+    const newOrder = [...albums];
+    [newOrder[idx], newOrder[newIdx]] = [newOrder[newIdx], newOrder[idx]];
+    await reorderAlbums({
+      variables: { coupleId: couple.id, albumIds: newOrder.map((a) => a.id) },
+    });
   };
 
   // Album detail view
@@ -346,7 +358,29 @@ export default function AlbumsPage() {
                       <p className="mt-0.5 truncate text-sm text-gray-500">{album.description}</p>
                     )}
                   </div>
-                  <div className="ml-2 flex gap-1" onClick={(e) => e.stopPropagation()}>
+                  <div className="ml-2 flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                    {albums.length > 1 && (
+                      <div className="flex flex-col">
+                        <button
+                          type="button"
+                          onClick={() => moveAlbum(albums.indexOf(album), -1)}
+                          disabled={albums.indexOf(album) === 0}
+                          className="rounded p-0.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30"
+                          aria-label="Move up"
+                        >
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" /></svg>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveAlbum(albums.indexOf(album), 1)}
+                          disabled={albums.indexOf(album) === albums.length - 1}
+                          className="rounded p-0.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30"
+                          aria-label="Move down"
+                        >
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                        </button>
+                      </div>
+                    )}
                     <Button variant="ghost" size="sm" onClick={() => openEditForm(album)}>Edit</Button>
                     <Button variant="ghost" size="sm" onClick={() => setDeleteId(album.id)} className="!text-red-500">Delete</Button>
                   </div>

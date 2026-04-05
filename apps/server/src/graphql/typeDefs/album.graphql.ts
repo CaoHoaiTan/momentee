@@ -7,6 +7,7 @@ export const albumTypeDefs = gql`
     title: String!
     description: String
     coverPhoto: String
+    sortOrder: Int!
     photos: [AlbumPhoto!]!
     photoCount: Int!
     createdAt: DateTime!
@@ -52,5 +53,6 @@ export const albumTypeDefs = gql`
     addAlbumPhoto(albumId: ID!, input: AddAlbumPhotoInput!): AlbumPhoto!
     removeAlbumPhoto(id: ID!): Boolean!
     reorderAlbumPhotos(albumId: ID!, photoIds: [ID!]!): Boolean!
+    reorderAlbums(coupleId: ID!, albumIds: [ID!]!): Boolean!
   }
 `;

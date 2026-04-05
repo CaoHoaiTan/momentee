@@ -93,6 +93,7 @@ export interface AlbumsTable {
   title: string;
   description: string | null;
   cover_photo: string | null;
+  sort_order: number;
   created_at: Created;
   updated_at: Updated;
 }
@@ -177,6 +178,7 @@ export interface QuizzesTable {
   title: string;
   description: string | null;
   is_active: boolean;
+  sort_order: number;
   created_at: Created;
 }
 

@@ -31,3 +31,9 @@ export const SUBMIT_QUIZ = gql`
     }
   }
 `;
+
+export const REORDER_QUIZZES = gql`
+  mutation ReorderQuizzes($coupleId: ID!, $quizIds: [ID!]!) {
+    reorderQuizzes(coupleId: $coupleId, quizIds: $quizIds)
+  }
+`;

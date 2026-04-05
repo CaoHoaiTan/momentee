@@ -7,7 +7,7 @@ import { useToast } from '../../../../lib/toast-context';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useCouple } from '../../../../hooks/useCouple';
 import { GET_QUIZZES, GET_QUIZ_LEADERBOARD } from '../../../../graphql/queries/quiz.queries';
-import { CREATE_QUIZ, DELETE_QUIZ } from '../../../../graphql/mutations/quiz.mutations';
+import { CREATE_QUIZ, DELETE_QUIZ, REORDER_QUIZZES } from '../../../../graphql/mutations/quiz.mutations';
 import { ConfirmModal } from '../../../../components/ui/confirm-modal';
 import { Button } from '../../../../components/ui/button';
 import { LoadingSpinner } from '../../../../components/ui/loading-spinner';
@@ -78,12 +78,27 @@ export default function QuizPage() {
     onCompleted: () => showSuccess('Quiz deleted'),
   });
 
+  const [reorderQuizzes] = useMutation(REORDER_QUIZZES, {
+    refetchQueries: [{ query: GET_QUIZZES, variables: { coupleId: couple?.id } }],
+    onError: (error) => showError(error.message),
+  });
+
   if (authLoading || coupleLoading) {
     return <div className="flex min-h-[50vh] items-center justify-center"><LoadingSpinner size="lg" /></div>;
   }
   if (!isAuthenticated || !couple) return null;
 
   const quizzes = data?.quizzes ?? [];
+
+  const moveQuiz = async (idx: number, direction: -1 | 1) => {
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= quizzes.length) return;
+    const newOrder = [...quizzes];
+    [newOrder[idx], newOrder[newIdx]] = [newOrder[newIdx], newOrder[idx]];
+    await reorderQuizzes({
+      variables: { coupleId: couple.id, quizIds: newOrder.map((q) => q.id) },
+    });
+  };
   const leaderboard = leaderboardData?.quizLeaderboard ?? [];
 
   const addQuestion = () => {
@@ -176,7 +191,29 @@ export default function QuizPage() {
                   </span>
                 </div>
                 {quiz.description && <p className="mt-1 text-sm text-gray-500">{quiz.description}</p>}
-                <div className="mt-3">
+                <div className="mt-3 flex items-center gap-2">
+                  {quizzes.length > 1 && (
+                    <div className="flex gap-0.5">
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); moveQuiz(quizzes.indexOf(quiz), -1); }}
+                        disabled={quizzes.indexOf(quiz) === 0}
+                        className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30"
+                        aria-label="Move up"
+                      >
+                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" /></svg>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); moveQuiz(quizzes.indexOf(quiz), 1); }}
+                        disabled={quizzes.indexOf(quiz) === quizzes.length - 1}
+                        className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30"
+                        aria-label="Move down"
+                      >
+                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                      </button>
+                    </div>
+                  )}
                   <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setDeleteId(quiz.id); }} className="!text-red-500">Delete</Button>
                 </div>
               </div>

@@ -56,5 +56,6 @@ export const quizTypeDefs = gql`
     createQuiz(coupleId: ID!, input: CreateQuizInput!): Quiz!
     deleteQuiz(id: ID!): Boolean!
     submitQuiz(quizId: ID!, input: SubmitQuizInput!): QuizResponse!
+    reorderQuizzes(coupleId: ID!, quizIds: [ID!]!): Boolean!
   }
 `;

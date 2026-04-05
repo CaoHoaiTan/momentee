@@ -60,3 +60,9 @@ export const REORDER_ALBUM_PHOTOS = gql`
     reorderAlbumPhotos(albumId: $albumId, photoIds: $photoIds)
   }
 `;
+
+export const REORDER_ALBUMS = gql`
+  mutation ReorderAlbums($coupleId: ID!, $albumIds: [ID!]!) {
+    reorderAlbums(coupleId: $coupleId, albumIds: $albumIds)
+  }
+`;
