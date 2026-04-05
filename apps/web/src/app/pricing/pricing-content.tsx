@@ -8,6 +8,8 @@ import { useCouple } from '../../hooks/useCouple';
 import { CREATE_CHECKOUT_SESSION } from '../../graphql/mutations/billing.mutations';
 import { Button } from '../../components/ui/button';
 import { LoadingSpinner } from '../../components/ui/loading-spinner';
+import { Navbar } from '../../components/layout/navbar';
+import { Footer } from '../../components/layout/footer';
 import { useToast } from '../../lib/toast-context';
 
 const PLANS = [
@@ -114,6 +116,8 @@ export default function PricingContent() {
   };
 
   return (
+    <>
+    <Navbar />
     <div className="mx-auto max-w-6xl px-4 py-16">
       <div className="text-center">
         <h1 className="text-4xl font-bold text-gray-900">Simple, Transparent Pricing</h1>
@@ -273,5 +277,7 @@ export default function PricingContent() {
         </div>
       </div>
     </div>
+    <Footer />
+    </>
   );
 }
