@@ -7,6 +7,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useCouple } from '../../hooks/useCouple';
 import { CREATE_CHECKOUT_SESSION } from '../../graphql/mutations/billing.mutations';
 import { Button } from '../../components/ui/button';
+import { LoadingSpinner } from '../../components/ui/loading-spinner';
 import { useToast } from '../../lib/toast-context';
 
 const PLANS = [
@@ -67,10 +68,14 @@ const PLANS = [
 export default function PricingContent() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const { couple, loading: coupleLoading } = useCouple();
   const { showError } = useToast();
   const [createCheckout] = useMutation<{ createCheckoutSession: string }>(CREATE_CHECKOUT_SESSION);
+
+  // Wait for auth + couple data before rendering plan cards
+  const dataReady = !authLoading && (!isAuthenticated || !coupleLoading);
+  const currentPlan = couple?.plan ?? null;
 
   const handleUpgrade = async (planKey: string) => {
     if (!isAuthenticated || !couple) {
@@ -98,16 +103,14 @@ export default function PricingContent() {
     }
   };
 
-  const getCtaText = (plan: typeof PLANS[number]) => {
-    if (!isAuthenticated) return plan.cta;
-    if (!couple) return plan.cta;
-    if (couple.plan === plan.key) return 'Current Plan';
-    if (plan.key === 'free') return 'Free Plan';
-    return plan.cta;
-  };
-
   const isCurrentPlan = (planKey: string) =>
-    isAuthenticated && couple?.plan === planKey;
+    isAuthenticated && currentPlan === planKey;
+
+  const isDowngrade = (planKey: string) => {
+    if (!currentPlan) return false;
+    const order = { free: 0, premium: 1, premium_plus: 2 };
+    return (order[planKey as keyof typeof order] ?? 0) < (order[currentPlan as keyof typeof order] ?? 0);
+  };
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-16">
@@ -119,12 +122,12 @@ export default function PricingContent() {
       </div>
 
       {/* Current plan banner for logged-in users */}
-      {isAuthenticated && couple && !coupleLoading && (
+      {isAuthenticated && currentPlan && dataReady && (
         <div className="mx-auto mt-8 flex max-w-md items-center gap-3 rounded-xl bg-[var(--color-teal)]/10 px-5 py-3 ring-1 ring-[var(--color-teal)]/20">
           <span className="text-xl">✨</span>
           <p className="text-sm text-gray-700">
-            You are on the <span className="font-bold capitalize text-[var(--color-teal)]">{couple.plan.replace('_', ' ')}</span> plan
-            {couple.plan !== 'premium_plus' && ' — upgrade for more features!'}
+            You are on the <span className="font-bold capitalize text-[var(--color-teal)]">{currentPlan!.replace('_', ' ')}</span> plan
+            {currentPlan !== 'premium_plus' && ' — upgrade for more features!'}
           </p>
         </div>
       )}
@@ -180,7 +183,11 @@ export default function PricingContent() {
               ))}
             </ul>
             <div className="mt-8">
-              {isCurrentPlan(plan.key) ? (
+              {!dataReady ? (
+                <div className="flex justify-center py-2">
+                  <LoadingSpinner size="sm" />
+                </div>
+              ) : isCurrentPlan(plan.key) ? (
                 <Button
                   variant={plan.highlighted ? 'outline' : 'primary'}
                   size="md"
@@ -189,18 +196,20 @@ export default function PricingContent() {
                 >
                   Current Plan
                 </Button>
-              ) : plan.key === 'free' && !isAuthenticated ? (
+              ) : !isAuthenticated ? (
                 <Link href="/register">
-                  <Button variant="ghost" size="md" className="w-full">
-                    Get Started
+                  <Button
+                    variant={plan.highlighted ? 'outline' : 'primary'}
+                    size="md"
+                    className={`w-full ${plan.highlighted ? '!border-white !text-white hover:!bg-white/10' : ''}`}
+                  >
+                    {plan.cta}
                   </Button>
                 </Link>
-              ) : plan.key === 'free' ? (
-                <Link href="/dashboard">
-                  <Button variant="ghost" size="md" className="w-full">
-                    Go to Dashboard
-                  </Button>
-                </Link>
+              ) : isDowngrade(plan.key) ? (
+                <Button variant="ghost" size="md" className="w-full" disabled>
+                  Included in your plan
+                </Button>
               ) : (
                 <Button
                   variant={plan.highlighted ? 'outline' : 'primary'}
@@ -209,7 +218,7 @@ export default function PricingContent() {
                   loading={loadingPlan === plan.key}
                   onClick={() => handleUpgrade(plan.key)}
                 >
-                  {getCtaText(plan)}
+                  {plan.cta}
                 </Button>
               )}
             </div>
