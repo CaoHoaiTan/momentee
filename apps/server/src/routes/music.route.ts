@@ -99,14 +99,11 @@ router.get('/api/music/spotify/search', searchLimiter, async (req, res) => {
     });
 
     const spotifyUrl = `${SPOTIFY_API}/search?${params.toString()}`;
-    console.log(`[Spotify API] Request: ${spotifyUrl}`);
     const response = await fetch(spotifyUrl, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
     if (!response.ok) {
-      const errBody = await response.text().catch(() => '');
-      console.error(`[Spotify API] Search failed: ${response.status} ${errBody}`);
       res.status(502).json({ error: 'Music service unavailable' });
       return;
     }
@@ -137,8 +134,7 @@ router.get('/api/music/spotify/search', searchLimiter, async (req, res) => {
     }));
 
     res.json({ results });
-  } catch (e) {
-    console.error('[Spotify API] Search error:', e);
+  } catch {
     res.status(502).json({ error: 'Failed to search tracks' });
   }
 });
@@ -196,8 +192,7 @@ router.post('/api/music/upload', uploadLimiter, async (req, res) => {
       bytes: result.bytes,
       title: title || 'Uploaded Track',
     });
-  } catch (e) {
-    console.error('[Music Upload] Error:', e);
+  } catch {
     res.status(500).json({ error: 'Failed to upload audio' });
   }
 });
@@ -213,8 +208,7 @@ router.delete('/api/music/upload/:publicId(*)', uploadLimiter, async (req, res) 
   try {
     await deleteAsset(publicId, 'video');
     res.json({ success: true });
-  } catch (e) {
-    console.error('[Music Delete] Error:', e);
+  } catch {
     res.status(500).json({ error: 'Failed to delete audio' });
   }
 });

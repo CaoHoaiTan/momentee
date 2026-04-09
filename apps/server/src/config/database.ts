@@ -8,7 +8,12 @@ const pool = new Pool({
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
-  ...(env.NODE_ENV === 'production' && { ssl: { rejectUnauthorized: false } }),
+  ...(env.NODE_ENV === 'production' && {
+    ssl: {
+      rejectUnauthorized: env.DATABASE_SSL_REJECT_UNAUTHORIZED !== 'false',
+      ...(env.DATABASE_SSL_CA ? { ca: env.DATABASE_SSL_CA } : {}),
+    },
+  }),
 });
 
 export const db = new Kysely<Database>({

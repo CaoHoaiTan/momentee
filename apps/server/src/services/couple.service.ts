@@ -22,7 +22,7 @@ interface UpdateCoupleInput {
   weddingDate?: string;
   theme?: string;
   layoutConfig?: string;
-  backgroundMusic?: string;
+  backgroundMusic?: string | null;
   coverPhoto?: string;
   isPublic?: boolean;
 }
@@ -161,7 +161,9 @@ export async function update(
     }
   }
   if (input.backgroundMusic !== undefined) {
-    try {
+    if (input.backgroundMusic === null) {
+      updateData.background_music = null;
+    } else try {
       const parsed = JSON.parse(input.backgroundMusic);
       if (parsed && typeof parsed === 'object') {
         const tracks = Array.isArray(parsed.tracks) ? parsed.tracks : [];

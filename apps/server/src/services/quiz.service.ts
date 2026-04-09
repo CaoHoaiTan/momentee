@@ -21,6 +21,12 @@ export async function createQuiz(coupleId: string, userId: string, input: Create
   await verifyCoupleOwnership(coupleId, userId);
 
   return db.transaction().execute(async (trx) => {
+    const maxSort = await trx
+      .selectFrom('quizzes')
+      .select(trx.fn.max('sort_order').as('max'))
+      .where('couple_id', '=', coupleId)
+      .executeTakeFirst();
+
     const quiz = await trx
       .insertInto('quizzes')
       .values({
@@ -29,6 +35,7 @@ export async function createQuiz(coupleId: string, userId: string, input: Create
         title: input.title,
         description: input.description ?? null,
         is_active: true,
+        sort_order: ((maxSort?.max as number) ?? 0) + 1,
       })
       .returningAll()
       .executeTakeFirstOrThrow();

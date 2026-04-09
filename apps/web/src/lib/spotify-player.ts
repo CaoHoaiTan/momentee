@@ -59,7 +59,7 @@ function getGlobalContainer(): HTMLDivElement {
 export function stopSpotifyPlayback() {
   const container = document.getElementById('spotify-playback-container');
   if (container) {
-    container.innerHTML = '';
+    container.replaceChildren();
   }
 }
 

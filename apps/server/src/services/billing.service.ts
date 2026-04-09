@@ -288,7 +288,7 @@ export async function handleStripeWebhook(payload: Buffer, signature: string) {
     }
 
     case 'customer.subscription.updated': {
-      const subscription = event.data.object as Record<string, unknown>;
+      const subscription = event.data.object as unknown as Record<string, unknown>;
       const metadata = subscription.metadata as Record<string, string> | undefined;
       const coupleId = metadata?.coupleId;
 
@@ -317,7 +317,7 @@ export async function handleStripeWebhook(payload: Buffer, signature: string) {
     }
 
     case 'customer.subscription.deleted': {
-      const subscription = event.data.object as Record<string, unknown>;
+      const subscription = event.data.object as unknown as Record<string, unknown>;
       const metadata = subscription.metadata as Record<string, string> | undefined;
       const coupleId = metadata?.coupleId;
 
@@ -343,7 +343,7 @@ export async function handleStripeWebhook(payload: Buffer, signature: string) {
     }
 
     case 'invoice.payment_failed': {
-      const invoice = event.data.object as Record<string, unknown>;
+      const invoice = event.data.object as unknown as Record<string, unknown>;
       const subscriptionId = invoice.subscription as string | undefined;
 
       if (subscriptionId) {

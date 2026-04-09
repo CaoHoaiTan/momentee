@@ -23,6 +23,8 @@ const envSchema = z.object({
   GOOGLE_CLIENT_ID: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().default('Momentee <noreply@momentee.dev>'),
+  DATABASE_SSL_REJECT_UNAUTHORIZED: z.string().optional(),
+  DATABASE_SSL_CA: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);

@@ -64,6 +64,12 @@ export async function create(coupleId: string, userId: string, input: CreateAlbu
 
   const coverUrl = await resolveImage(input.coverPhoto, 'albums');
 
+  const maxSort = await db
+    .selectFrom('albums')
+    .select(db.fn.max('sort_order').as('max'))
+    .where('couple_id', '=', coupleId)
+    .executeTakeFirst();
+
   const album = await db
     .insertInto('albums')
     .values({
@@ -72,6 +78,7 @@ export async function create(coupleId: string, userId: string, input: CreateAlbu
       title: input.title,
       description: input.description ?? null,
       cover_photo: coverUrl,
+      sort_order: ((maxSort?.max as number) ?? 0) + 1,
     })
     .returningAll()
     .executeTakeFirstOrThrow();
