@@ -13,7 +13,7 @@
     "lint": "eslint src/"
   },
   "dependencies": {
-    "@apollo/server": "^4.11.0",
+    "@apollo/server": "^5.5.0",
     "@momentee/shared": "workspace:*",
     "@paralleldrive/cuid2": "^2.2.2",
     "bcryptjs": "^2.4.3",
