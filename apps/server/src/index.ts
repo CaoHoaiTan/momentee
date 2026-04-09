@@ -61,6 +61,8 @@ async function main() {
     validationRules: [depthLimit(7)],
   });
 
+  await server.start();
+
   app.use(
     '/graphql',
     graphqlLimiter,
