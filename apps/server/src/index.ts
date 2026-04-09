@@ -5,7 +5,7 @@ import compression from 'compression';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import { ApolloServer } from '@apollo/server';
-import { expressMiddleware } from '@apollo/server/express4';
+import { expressMiddleware } from '@as-integrations/express4';
 import depthLimit from 'graphql-depth-limit';
 import { typeDefs, resolvers } from './graphql/schema.js';
 import { createContext, type GQLContext } from './graphql/context.js';
@@ -60,8 +60,6 @@ async function main() {
     introspection: env.NODE_ENV === 'development',
     validationRules: [depthLimit(7)],
   });
-
-  await server.start();
 
   app.use(
     '/graphql',
