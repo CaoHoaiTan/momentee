@@ -26,7 +26,7 @@
   },
   "resolutions": {
     "lodash": ">=4.18.0",
-    "path-to-regexp": ">=0.1.13",
+    "path-to-regexp": "0.1.12",
     "picomatch": ">=2.3.2",
     "brace-expansion": ">=1.1.13",
     "minimatch": ">=3.1.6"
