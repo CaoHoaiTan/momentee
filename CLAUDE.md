@@ -10,7 +10,7 @@ Momentee — "Every couple has a story." A Gen-Z couple-focused social network w
 
 Monorepo with Yarn v4 workspaces:
 
-- `apps/server` — Express.js + Apollo Server v4 (GraphQL), Kysely (PostgreSQL), JWT auth
+- `apps/server` — Express.js + Apollo Server v5 (GraphQL), Kysely (PostgreSQL), JWT auth
 - `apps/web` — Next.js 16 (App Router), Apollo Client v4, Tailwind CSS v4
 - `packages/shared` — Shared types, Zod validations, constants, utils
 
@@ -18,7 +18,7 @@ Monorepo with Yarn v4 workspaces:
 
 ```bash
 # Start services
-docker compose up -d              # Start Postgres + Redis
+docker compose up -d              # Start Postgres + Redis (dev)
 
 # Development
 yarn dev                          # Start both server (4000) and web (3000)
@@ -29,11 +29,11 @@ yarn dev:web                      # Frontend only
 yarn db:migrate                   # Run all pending migrations
 yarn db:seed                      # Seed test data (5 users, 3 couples, etc.)
 
-# Build (Turborepo: shared → server → web)
-yarn build                        # Build all
+# Build (Turborepo: shared → server + web in parallel)
+yarn build                        # Build all workspaces
 yarn build:shared                 # Build shared package (Rollup)
-yarn build:server                 # Build server (Rollup)
-yarn build:web                    # Build frontend (Next.js)
+yarn build:server                 # Build server (Rollup → dist/)
+yarn build:web                    # Build frontend (Next.js → .next/)
 
 # Lint & Format
 yarn lint                         # ESLint 9 flat config
@@ -42,11 +42,21 @@ yarn format                       # Prettier write
 yarn format:check                 # Prettier check
 
 # Type check
-yarn turbo run typecheck          # All workspaces
+yarn turbo run typecheck          # All workspaces (requires shared to be built first)
 
 # E2E tests (Playwright, requires dev servers running)
 npx playwright test               # Run all e2e tests (chromium)
 npx playwright test --ui          # Interactive UI mode
+
+# Docker — local builds
+yarn docker:build:server          # Build server image (momentee-server:local)
+yarn docker:build:web             # Build web image (momentee-web:local)
+yarn docker:build                 # Build both
+
+# Docker — production stack
+yarn docker:prod:up               # Start full stack (postgres+redis+server+web+nginx)
+yarn docker:prod:down             # Stop full stack
+yarn docker:prod:logs             # Tail logs
 ```
 
 ## Server Architecture (`apps/server/src/`)
@@ -86,9 +96,11 @@ All modules are registered in `typeDefs/index.ts` and `resolvers/index.ts`.
 
 **Auth context** (`lib/auth-context.tsx`): `useAuth()` hook provides `user`, `loading`, `isAuthenticated`, `login()`, `register()`, `logout()`. Syncs with `ME_QUERY` on token load.
 
+**Standalone output:** `next.config.ts` uses `output: 'standalone'` with `outputFileTracingRoot` pointing to the monorepo root. This produces `.next/standalone/apps/web/server.js` — required for Docker; has no effect on `yarn dev`.
+
 ## Shared Package (`packages/shared/src/`)
 
-Exports types, enums (`UserRole`, `PlanType`, `Visibility`, etc.), Zod validation schemas (used by both server resolvers and web forms), `PLAN_LIMITS` constants for feature gating, and utility functions (`slugify`, `sanitizeCss`, etc.). Built with Rollup (ESM, preserveModules).
+Exports types, enums (`UserRole`, `PlanType`, `Visibility`, etc.), Zod validation schemas (used by both server resolvers and web forms), `PLAN_LIMITS` constants for feature gating, and utility functions (`slugify`, `sanitizeCss`, etc.). Built with Rollup (ESM, preserveModules). **Must be built before typechecking server or web.**
 
 ## Key Patterns
 
@@ -115,7 +127,15 @@ Exports types, enums (`UserRole`, `PlanType`, `Visibility`, etc.), Zod validatio
 
 - Connection: `DATABASE_URL=postgresql://momentee:momentee@localhost:5432/momentee`
 - Kysely Database type in `db/types.ts` — update when adding tables/columns
-- Migrations in `db/migrations/` (001–015), seed in `db/seed.ts`
+- Migrations in `db/migrations/` (001–019), seed in `db/seed.ts`
+
+## CI/CD
+
+- **CI** (`.github/workflows/ci.yml`): lint → typecheck → build, runs on every push/PR. Yarn cache keyed on `yarn.lock`.
+- **CD** (`.github/workflows/cd.yml`): triggers on `main` push. Builds Docker images → pushes to GHCR → deploys to VPS via SSH.
+- **Required GitHub Secrets:** `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`
+- **Required GitHub Variables:** `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_GRAPHQL_URL`, `NEXT_PUBLIC_GOOGLE_CLIENT_ID`
+- Production stack uses `docker-compose.prod.yml`; server+web+postgres+redis all on internal Docker network, only nginx exposes ports 80/443.
 
 ## Test Accounts (after seeding)
 

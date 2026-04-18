@@ -1,0 +1,135 @@
+name: CD
+
+on:
+  push:
+    branches: ['main']
+    tags: ['v*.*.*']
+
+# Never cancel in-flight deploys — a half-completed deploy is worse than a queued one
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # ── Build & Push Docker Images ────────────────────────────────────────────────
+  # Both apps build in parallel via matrix strategy
+  build-and-push:
+    name: Build & Push (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: server
+            context: .
+            dockerfile: Dockerfile.server
+          - app: web
+            context: .
+            dockerfile: Dockerfile.web
+          - app: nginx
+            context: ./nginx
+            dockerfile: nginx/Dockerfile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU (multi-platform support)
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/momentee-${{ matrix.app }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=sha-,format=short
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          # GitHub Actions cache — scoped per app to avoid cache collisions
+          cache-from: type=gha,scope=momentee-${{ matrix.app }}
+          cache-to: type=gha,mode=max,scope=momentee-${{ matrix.app }}
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_GRAPHQL_URL=${{ vars.NEXT_PUBLIC_GRAPHQL_URL }}
+            NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ vars.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
+
+  # ── Deploy to VPS ─────────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    # Set environment to 'production' in GitHub repo settings for manual approval gate
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute image tag
+        id: tag
+        run: echo "sha=sha-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Copy compose and nginx config to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: 'docker-compose.prod.yml,nginx/'
+          target: '/opt/momentee'
+
+      - name: Deploy on VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/momentee
+
+            export IMAGE_TAG=${{ steps.tag.outputs.sha }}
+            export GITHUB_REPOSITORY=${{ github.repository }}
+
+            # Pull updated images
+            docker compose -f docker-compose.prod.yml pull
+
+            # Rolling restart — new containers start before old ones stop
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+            # Wait for services to be healthy
+            sleep 10
+
+            # Verify server health
+            docker compose -f docker-compose.prod.yml exec -T server \
+              wget -qO- http://localhost:4000/health || exit 1
+
+            echo "Deploy successful: $IMAGE_TAG"
+
+            # Clean up dangling images to reclaim disk space
+            docker image prune -f

@@ -22,7 +22,17 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "turbo run typecheck",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "docker:build:server": "docker build -f Dockerfile.server -t momentee-server:local .",
+    "docker:build:web": "docker build -f Dockerfile.web -t momentee-web:local .",
+    "docker:build": "yarn docker:build:server && yarn docker:build:web",
+    "docker:local:up": "docker compose -f docker-compose.local.yml up --build -d",
+    "docker:local:down": "docker compose -f docker-compose.local.yml down",
+    "docker:local:logs": "docker compose -f docker-compose.local.yml logs -f",
+    "docker:local:migrate": "docker exec momentee-server node apps/server/dist/db/migrate.js",
+    "docker:prod:up": "docker compose -f docker-compose.prod.yml up -d",
+    "docker:prod:down": "docker compose -f docker-compose.prod.yml down",
+    "docker:prod:logs": "docker compose -f docker-compose.prod.yml logs -f"
   },
   "resolutions": {
     "lodash": ">=4.18.0",

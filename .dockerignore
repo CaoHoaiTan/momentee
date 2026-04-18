@@ -1,0 +1,51 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Node dependencies (installed fresh in Docker)
+**/node_modules
+
+# Built artifacts (rebuilt in Docker)
+**/dist
+**/.next
+!apps/web/public
+
+# Yarn internals (keep .yarnrc.yml, exclude cache)
+.yarn/cache
+.yarn/install-state.gz
+.yarn/unplugged
+
+# Environment files (injected at runtime — keep .env.example as reference)
+.env
+.env.*
+!.env.example
+
+# Dev/test artifacts
+coverage
+**/coverage
+e2e
+playwright.config.ts
+test-results
+**/test-results
+playwright-report
+
+# Editor and OS
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Turbo cache
+.turbo
+
+# Docker files themselves (not needed in build context)
+Dockerfile*
+docker-compose*.yml
+nginx/
+
+# Documentation
+*.md
+!CLAUDE.md

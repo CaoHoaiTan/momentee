@@ -1,0 +1,68 @@
+# ─── Stage 1: deps ────────────────────────────────────────────────────────────
+# Install all dependencies using Yarn v4 (bootstrapped via corepack + packageManager field)
+FROM node:20-alpine AS deps
+WORKDIR /app
+
+RUN corepack enable
+
+# Copy manifests first — this layer is cached until lockfile or package.json changes
+COPY package.json yarn.lock .yarnrc.yml ./
+COPY apps/server/package.json    apps/server/
+COPY apps/web/package.json       apps/web/
+COPY packages/shared/package.json packages/shared/
+
+RUN yarn install --immutable
+
+# ─── Stage 2: builder ─────────────────────────────────────────────────────────
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+RUN corepack enable
+
+COPY package.json yarn.lock .yarnrc.yml turbo.json tsconfig.base.json ./
+COPY apps/server/package.json    apps/server/
+COPY apps/web/package.json       apps/web/
+COPY packages/shared/package.json packages/shared/
+
+# Copy installed node_modules from deps stage (all hoisted to root by Yarn v4 nodeLinker: node-modules)
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy source
+COPY packages/shared/ packages/shared/
+COPY apps/server/     apps/server/
+
+# Build shared first (server depends on it), then server
+RUN yarn workspace @momentee/shared build
+RUN yarn workspace @momentee/server build
+
+# ─── Stage 3: runner ──────────────────────────────────────────────────────────
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# Non-root user for security
+RUN addgroup --system --gid 1001 nodejs \
+ && adduser  --system --uid 1001 nodeuser
+
+# Copy production node_modules (all hoisted to root by Yarn v4 nodeLinker: node-modules)
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy built artifacts
+# Note: rollup preserveModules=true outputs a directory tree, not a single file
+COPY --from=builder /app/packages/shared/dist/ ./packages/shared/dist/
+COPY --from=builder /app/apps/server/dist/     ./apps/server/dist/
+
+# Workspace manifests needed for Node module resolution
+COPY apps/server/package.json    ./apps/server/
+COPY packages/shared/package.json ./packages/shared/
+COPY package.json ./
+
+USER nodeuser
+
+EXPOSE 4000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:4000/health || exit 1
+
+CMD ["node", "apps/server/dist/index.js"]
